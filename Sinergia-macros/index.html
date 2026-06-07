@@ -1683,7 +1683,29 @@ const companions = dayRotate(plan.companionSets || [plan.companions]);
       <div class="swap-grid-v2">${swapsHtml}</div>
     </div>
     <div class="companions-title">🥗 Acompañantes sugeridos</div>
-    ${compHtml}
+      ${compHtml}
+    <!-- GRASA SALUDABLE -->
+    <div class="companion-item" style="border-color:rgba(240,165,0,.2);background:rgba(240,165,0,.05)">
+      <span class="companion-ico">${mainFat.ico}</span>
+      <div class="companion-info">
+        <div class="companion-name" style="color:#f0a500">🥑 Grasa saludable</div>
+        <div class="companion-name">${mainFat.name}</div>
+        <div class="companion-desc">${mainFat.desc}</div>
+      </div>
+      <span class="companion-qty" style="color:#f0a500">${mainFat.qty}</span>
+    </div>
+
+    ${mainCarb ? `
+    <div class="companion-item" style="border-color:rgba(224,90,154,.2);background:rgba(224,90,154,.05)">
+      <span class="companion-ico">${mainCarb.ico}</span>
+      <div class="companion-info">
+        <div class="companion-name" style="color:#e05a9a">🌾 Carbo opcional · Solo día de entrenamiento</div>
+        <div class="companion-name">${mainCarb.name}</div>
+        <div class="companion-desc">${mainCarb.desc}</div>
+      </div>
+      <span class="companion-qty" style="color:#e05a9a">${mainCarb.qty}</span>
+    </div>` : ''}
+
     ${caldoHtml}
     ${psylliumHtml}
     ${avoidHtml}
