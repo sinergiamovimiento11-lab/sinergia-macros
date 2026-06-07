@@ -1,7 +1,6 @@
 [build]
-  functions = "netlify/functions"
+  publish = "sinergia-macros"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
+[functions]
+  directory = "sinergia-macros/netlify/functions"
+
