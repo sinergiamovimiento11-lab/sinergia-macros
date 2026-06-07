@@ -1643,7 +1643,7 @@ Sé breve y directo (máximo 5 líneas).`;
         body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
       });
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta de la IA';
+      const text = data?.text || 'Sin respuesta de la IA';
       if (loadDiv)   loadDiv.classList.remove('show');
       if (resultBox) resultBox.classList.add('show');
       if (resultDiv) resultDiv.textContent = text;
@@ -1929,7 +1929,7 @@ async function analyzeRegPhoto(mealKey) {
         body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
       });
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta';
+      const text = data?.text || 'Sin respuesta';
       resultDiv.innerHTML = `<p style="color:#e0ffe0;white-space:pre-wrap">${text}</p>`;
     } catch (err) {
       resultDiv.innerHTML = `<p style="color:#ff6b6b">❌ Error: ${err.message}</p>`;
