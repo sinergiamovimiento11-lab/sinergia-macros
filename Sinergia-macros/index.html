@@ -772,52 +772,218 @@ const FASTS = [
    DATOS — PLANES DE COMIDA
 ══════════════════════════════════════════════════════ */
 const MEAL_PLANS = {
-  desayuno:{
-    name:'Desayuno',ico:'🌅',
-    main:{ico:'🥚',name:'Huevos enteros',cook:'Revueltos en aceite de coco · Pochados · Omelette',note:'Proteína completa + grasa saludable · La yema es sagrada — Jaramillo',prot_per_unit:6,unit:'huevo'},
-    swaps:[
-      {ico:'🐟',name:'Sardinas',g:100,prot:25},{ico:'🧀',name:'Queso campesino',g:80,prot:18},
-      {ico:'🍗',name:'Pollo desmenuzado',g:100,prot:31},{ico:'🥩',name:'Carne molida',g:100,prot:26},
-      {ico:'🫀',name:'Hígado de res',g:80,prot:21},{ico:'🐟',name:'Atún en agua',g:90,prot:22},
+
+  desayuno: {
+    name: 'Desayuno', ico: '🌅',
+    has_caldo: true, has_psyllium: false,
+
+    mains: [
+      { ico:'🥚', name:'Huevos enteros revueltos',    note:'Yema esencial · Colina + vitamina D',        cook:'Revueltos en ghee con sal del Himalaya' },
+      { ico:'🥚', name:'Huevos + queso cottage',      note:'Proteína completa + probióticos',            cook:'Revueltos con 2 cdas de cottage' },
+      { ico:'🥛', name:'Yogur griego natural',        note:'Sin azúcar · Probióticos + calcio',          cook:'Con semillas de chía y canela sin azúcar' },
+      { ico:'🥚', name:'Tortilla de huevos y espinaca',note:'Hierro + proteína completa',                cook:'En sartén con aceite de coco, espinaca salteada' },
+      { ico:'🥚', name:'Huevos cocidos + aguacate',   note:'Grasa monoinsaturada + proteína completa',   cook:'Huevos duros + ½ aguacate con limón y sal' },
+      { ico:'🧀', name:'Huevos + kéfir',              note:'Microbiota activa + proteína completa',      cook:'Huevos fritos en ghee + vaso kéfir frío' },
+      { ico:'🥚', name:'Huevos al horno con tomate',  note:'Licopeno + proteína · Antiinflamatorio',     cook:'Horneados en molde con tomate cherry y orégano' },
+      { ico:'🥛', name:'Kéfir + semillas + nueces',   note:'Día ligero · Probióticos + Omega-3',         cook:'Kéfir natural + chía + linaza + 5 nueces' },
+      { ico:'🥚', name:'Huevos + sardinas',           note:'Omega-3 alto · Antiinflamatorio potente',    cook:'Huevos revueltos con sardinas en agua escurridas' },
+      { ico:'🥚', name:'Huevos + champiñones',        note:'Vitamina D + umami natural',                 cook:'Salteados en ghee con ajo y perejil' },
+      { ico:'🧀', name:'Queso cottage + huevos',      note:'Alta proteína + bajo IG',                    cook:'Cottage frío + 2 huevos cocidos + pepino' },
+      { ico:'🥚', name:'Huevos + espárragos',         note:'Prebiótico natural + proteína',              cook:'Fritos en aceite de oliva con espárragos al vapor' },
+      { ico:'🥛', name:'Yogur griego + semillas chía',note:'Fibra soluble + proteína + probióticos',     cook:'Yogur natural + 1 cda chía + canela + 5 almendras' },
+      { ico:'🥚', name:'Huevos + pimentón y cebolla', note:'Vitamina C + proteína completa',             cook:'Revueltos con pimentón rojo y cebolla cabezona' },
     ],
-    companions:[
-      {ico:'🥑',name:'Aguacate',desc:'½ unidad · Grasa saludable · Potasio',qty:'½ unidad'},
-      {ico:'🥬',name:'Espinaca salteada',desc:'Hierro + magnesio · Saltear en aceite de oliva',qty:'1 taza'},
-      {ico:'🍅',name:'Tomate cherry',desc:'Antioxidantes · Bajo IG',qty:'6-8 unidades'},
+
+    fats: [
+      { ico:'🥑', name:'Aguacate',             qty:'¼ unidad',     desc:'Grasa monoinsaturada · Colombiana ⭐' },
+      { ico:'🫒', name:'Aceite de oliva',       qty:'1 cda',        desc:'Extra virgen · Antiinflamatorio' },
+      { ico:'🥥', name:'Aceite de coco',        qty:'1 cdita',      desc:'TCM · Energía sin pico de insulina' },
+      { ico:'🧈', name:'Ghee',                  qty:'1 cdita',      desc:'Mantequilla clarificada · Alta temperatura' },
+      { ico:'🌰', name:'Nueces',                qty:'7 unidades',   desc:'Omega-3 · Antiinflamatorio' },
+      { ico:'🌰', name:'Almendras',             qty:'15 unidades',  desc:'Vitamina E · Saciedad' },
+      { ico:'🌱', name:'Semillas de chía',      qty:'1 cda',        desc:'Omega-3 + fibra soluble' },
+      { ico:'🌱', name:'Linaza molida',         qty:'1 cda',        desc:'Omega-3 + estrógenos vegetales' },
+      { ico:'🥑', name:'Aguacate + oliva',      qty:'⅛ + ½ cda',   desc:'Doble fuente · Máximo antiinflamatorio' },
+      { ico:'🥥', name:'Coco rallado natural',  qty:'1 cda',        desc:'TCM + fibra · Sin azúcar' },
+      { ico:'🧈', name:'Mantequilla real',      qty:'1 cdita',      desc:'SÍ mantequilla · NO margarina' },
+      { ico:'🌰', name:'Mix nueces + almendras',qty:'5+8 unidades', desc:'Omega-3 + vitamina E combinados' },
+      { ico:'🌱', name:'Semillas de calabaza',  qty:'1 cda',        desc:'Zinc + magnesio + grasa saludable' },
+      { ico:'🫒', name:'Aceitunas negras',      qty:'6 unidades',   desc:'Grasa oleica + antioxidantes' },
     ],
-    has_caldo:true,has_psyllium:false,
+
+    companionSets: [
+      [{ ico:'🥬', name:'Espinaca salteada',   desc:'Hierro + magnesio',       qty:'1 taza'    }, { ico:'🍅', name:'Tomate cherry',     desc:'Licopeno antioxidante',  qty:'6 unidades' }],
+      [{ ico:'🥒', name:'Pepino en rodajas',   desc:'Hidratante + silicio',    qty:'½ taza'    }, { ico:'🫑', name:'Pimentón rojo',     desc:'Vitamina C alta',        qty:'½ unidad'   }],
+      [{ ico:'🥦', name:'Brócoli al vapor',    desc:'Sulforafano detox',       qty:'½ taza'    }, { ico:'🥬', name:'Lechuga romana',    desc:'Fibra + folato',         qty:'1 taza'     }],
+      [{ ico:'🍄', name:'Champiñones salteados',desc:'Vitamina D + umami',     qty:'½ taza'    }, { ico:'🥬', name:'Acelgas',          desc:'Potasio + magnesio',     qty:'1 taza'     }],
+      [{ ico:'🥒', name:'Zucchini salteado',   desc:'Bajo IG + fibra',         qty:'½ taza'    }, { ico:'🍅', name:'Tomate en rodajas',desc:'Licopeno',               qty:'1 mediano'  }],
+      [{ ico:'🥬', name:'Espárragos',          desc:'Prebiótico natural',      qty:'4 tallos'  }, { ico:'🫑', name:'Pimentón amarillo',desc:'Vitamina C + betacaroteno',qty:'½ unidad' }],
+      [{ ico:'🥬', name:'Kale salteado',       desc:'Antioxidante potente',    qty:'1 taza'    }, { ico:'🥒', name:'Pepino + limón',   desc:'Alcalinizante',          qty:'½ taza'     }],
+      [{ ico:'🥬', name:'Espinaca + ajo',      desc:'Hierro + alicina',        qty:'1 taza'    }, { ico:'🍅', name:'Tomate + orégano', desc:'Licopeno + antiinflamatorio',qty:'1 med'  }],
+      [{ ico:'🥦', name:'Brócoli + zanahoria', desc:'Betacaroteno + sulforafano',qty:'½ taza'  }, { ico:'🥬', name:'Pepino',          desc:'Silicio + hidratación',  qty:'½ taza'     }],
+      [{ ico:'🫑', name:'Pimentón tricolor',   desc:'Vitaminas A, C, E',       qty:'½ unidad'  }, { ico:'🥬', name:'Rúgula',          desc:'Calcio + antioxidantes', qty:'1 taza'     }],
+      [{ ico:'🍄', name:'Champiñones + tomillo',desc:'Vitamina D + antibacterial',qty:'½ taza' }, { ico:'🥬', name:'Espinaca baby',   desc:'Hierro biodisponible',   qty:'1 taza'     }],
+      [{ ico:'🥒', name:'Pepino + menta',      desc:'Digestivo + refrescante', qty:'½ taza'    }, { ico:'🫑', name:'Pimentón verde',  desc:'Clorofila + vitamina C',  qty:'½ unidad'  }],
+      [{ ico:'🥬', name:'Acelgas + limón',     desc:'Potasio + vitamina C',    qty:'1 taza'    }, { ico:'🍅', name:'Tomates cherry',  desc:'Licopeno + hidratación',  qty:'6 unidades'}],
+      [{ ico:'🥦', name:'Coliflor al vapor',   desc:'Indol-3-carbinol detox',  qty:'½ taza'    }, { ico:'🥬', name:'Lechuga + pepino',desc:'Fibra + hidratación',     qty:'1 taza'     }],
+    ],
+
+    swaps: [
+      { ico:'🍗', name:'Pechuga de pollo',     g:90,  prot:28 },
+      { ico:'🐟', name:'Atún en agua',          g:100, prot:25 },
+      { ico:'🧀', name:'Queso cottage',         g:120, prot:14 },
+      { ico:'🥛', name:'Yogur griego',          g:150, prot:15 },
+      { ico:'🐟', name:'Sardinas en agua',      g:100, prot:20 },
+    ],
   },
-  almuerzo:{
-    name:'Almuerzo',ico:'☀️',
-    main:{ico:'🍗',name:'Pechuga de pollo',cook:'A la plancha · Al horno · Poché · Desmechado',note:'Proteína magra completa · 31g por 100g · Palma de mano = ~120g',prot_per_100g:31},
-    swaps:[
-      {ico:'🥩',name:'Carne de res magra',g:120,prot:30},{ico:'🐟',name:'Trucha',g:130,prot:29},
-      {ico:'🐟',name:'Salmón',g:120,prot:26},{ico:'🦐',name:'Camarones',g:150,prot:30},
-      {ico:'🫀',name:'Corazones de pollo',g:120,prot:20},{ico:'🥚',name:'Huevos (4 und)',g:200,prot:24},
+
+  almuerzo: {
+    name: 'Almuerzo', ico: '☀️',
+    has_caldo: false, has_psyllium: false,
+
+    mains: [
+      { ico:'🍗', name:'Pechuga de pollo a la plancha', note:'Proteína magra · Alta biodisponibilidad',    cook:'A la plancha con aceite de oliva, ajo y limón' },
+      { ico:'🥩', name:'Lomo de res a la plancha',      note:'Hierro hemo + zinc + proteína completa',     cook:'A la plancha con sal, pimienta y romero' },
+      { ico:'🐟', name:'Trucha al horno',                note:'Omega-3 colombiano ⭐ · Antiinflamatorio',   cook:'Al horno con limón, ajo y hierbas frescas' },
+      { ico:'🍗', name:'Muslo de pollo al horno',        note:'Más grasa natural · Sabor intenso',         cook:'Al horno con cúrcuma, ajo y aceite de coco' },
+      { ico:'🥩', name:'Carne molida magra salteada',    note:'Hierro + zinc · Fácil digestión',           cook:'Salteada con pimentón, cebolla y comino' },
+      { ico:'🐟', name:'Tilapia/Mojarra al vapor',       note:'Proteína ligera · Bajo en grasa',           cook:'Al vapor con jengibre, limón y cilantro' },
+      { ico:'🥩', name:'Cerdo magro lomo a la plancha',  note:'Proteína completa · Vitamina B1',           cook:'A la plancha con mostaza natural y romero' },
+      { ico:'🐟', name:'Salmón a la plancha',            note:'Omega-3 alto · Antiinflamatorio potente',   cook:'A la plancha con aceite de oliva y eneldo' },
+      { ico:'🍗', name:'Pollo al horno con cúrcuma',     note:'Antiinflamatorio + proteína magra',         cook:'Marinado en cúrcuma, ajo, limón y aceite coco' },
+      { ico:'🥩', name:'Hígado de res salteado',         note:'Vitamina A + B12 + hierro hemo ⭐ Máx 2x/sem',cook:'Salteado con cebolla, ajo y aceite de oliva' },
+      { ico:'🐟', name:'Atún fresco a la plancha',       note:'Omega-3 + selenio · Antiinflamatorio',      cook:'A la plancha con limón, sal y pimienta negra' },
+      { ico:'🍗', name:'Pechuga de pollo al horno',      note:'Proteína magra · Bajo en grasa saturada',   cook:'Al horno con ajo, tomillo y aceite de oliva' },
+      { ico:'🥩', name:'Res molida con vegetales',       note:'Hierro + zinc + fibra vegetal',             cook:'Salteada con brócoli, zanahoria y cúrcuma' },
+      { ico:'🐟', name:'Trucha + lentejas',              note:'Proteína completa + carbohidrato bajo IG',  cook:'Trucha al vapor + lentejas con comino y limón' },
     ],
-    companions:[
-      {ico:'🥗',name:'Ensalada verde grande',desc:'Lechuga + pepino + zanahoria + limón',qty:'2 tazas'},
-      {ico:'🥦',name:'Brócoli al vapor',desc:'Sulforafano anticancerígeno · No sobrecocinar',qty:'1 taza'},
-      {ico:'🫒',name:'Aceite de oliva',desc:'Extra virgen · Encima de la ensalada',qty:'1 cucharada'},
+
+    fats: [
+      { ico:'🥑', name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Colombiana ⭐' },
+      { ico:'🫒', name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio' },
+      { ico:'🥑', name:'Aguacate + oliva',       qty:'⅛ + ½ cda',  desc:'Doble fuente antiinflamatoria' },
+      { ico:'🌰', name:'Almendras tostadas',     qty:'15 unidades', desc:'Vitamina E + grasa monoinsaturada' },
+      { ico:'🌰', name:'Nueces',                 qty:'7 unidades',  desc:'Omega-3 vegetal · Antiinflamatorio' },
+      { ico:'🥥', name:'Aceite de coco',         qty:'1 cdita',     desc:'TCM · Energía sin insulina' },
+      { ico:'🧈', name:'Ghee',                   qty:'1 cdita',     desc:'Para saltear · Alta temperatura' },
+      { ico:'🌱', name:'Semillas de girasol',    qty:'1 cda',       desc:'Vitamina E + zinc' },
+      { ico:'🫒', name:'Aceitunas verdes',       qty:'6 unidades',  desc:'Grasa oleica + sodio natural' },
+      { ico:'🥑', name:'Guacamole natural',      qty:'2 cdas',      desc:'Aguacate + limón + cilantro · Sin procesar' },
+      { ico:'🌰', name:'Mix semillas',           qty:'1 cda',       desc:'Chía + linaza + calabaza · Omega-3 total' },
+      { ico:'🫒', name:'Aceite de oliva + limón',qty:'1 cda',       desc:'Aderezo natural antiinflamatorio' },
+      { ico:'🌰', name:'Almendras + nueces',     qty:'8+5 unidades',desc:'Vitamina E + Omega-3 combinados' },
+      { ico:'🥥', name:'Coco rallado',           qty:'1 cda',       desc:'TCM + fibra · Sin azúcar añadida' },
     ],
-    has_caldo:false,has_psyllium:false,
+
+    companionSets: [
+      [{ ico:'🥦', name:'Brócoli al vapor',      desc:'Sulforafano + vitamina C',  qty:'1 taza'   }, { ico:'🥕', name:'Zanahoria cocida',   desc:'Betacaroteno + fibra',      qty:'½ taza'   }],
+      [{ ico:'🥬', name:'Espinaca salteada',     desc:'Hierro + magnesio',         qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Hidratante + silicio',      qty:'½ taza'   }],
+      [{ ico:'🍅', name:'Tomate + lechuga',      desc:'Licopeno + fibra',          qty:'1 taza'   }, { ico:'🫑', name:'Pimentón rojo',      desc:'Vitamina C alta',           qty:'½ unidad' }],
+      [{ ico:'🥦', name:'Coliflor + brócoli',    desc:'Detox + sulforafano',       qty:'1 taza'   }, { ico:'🥬', name:'Espárragos',         desc:'Prebiótico + folato',       qty:'4 tallos' }],
+      [{ ico:'🥒', name:'Zucchini salteado',     desc:'Bajo IG + fibra',           qty:'1 taza'   }, { ico:'🥕', name:'Zanahoria rallada',  desc:'Betacaroteno crudo',        qty:'½ taza'   }],
+      [{ ico:'🥬', name:'Kale + limón',          desc:'Antioxidante + vitamina C', qty:'1 taza'   }, { ico:'🍄', name:'Champiñones',        desc:'Vitamina D + umami',        qty:'½ taza'   }],
+      [{ ico:'🥬', name:'Acelgas al vapor',      desc:'Potasio + magnesio',        qty:'1 taza'   }, { ico:'🥦', name:'Brócoli',            desc:'Sulforafano',               qty:'½ taza'   }],
+      [{ ico:'🫑', name:'Pimentón tricolor',     desc:'Vitaminas A, C, E',         qty:'1 unidad' }, { ico:'🥬', name:'Rúgula',             desc:'Calcio + antioxidantes',    qty:'1 taza'   }],
+      [{ ico:'🥕', name:'Zanahoria + pepino',    desc:'Betacaroteno + hidratación',qty:'1 taza'   }, { ico:'🥬', name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'   }],
+      [{ ico:'🥦', name:'Brócoli + zanahoria',   desc:'Doble antioxidante',        qty:'1 taza'   }, { ico:'🥒', name:'Pepino + tomate',    desc:'Hidratante + licopeno',     qty:'½ taza'   }],
+      [{ ico:'🍄', name:'Champiñones + espinaca',desc:'Vitamina D + hierro',       qty:'1 taza'   }, { ico:'🫑', name:'Pimentón verde',     desc:'Clorofila + vitamina C',    qty:'½ unidad' }],
+      [{ ico:'🥬', name:'Espinaca + ajo',        desc:'Hierro + alicina',          qty:'1 taza'   }, { ico:'🥦', name:'Coliflor',           desc:'Indol-3-carbinol detox',    qty:'½ taza'   }],
+      [{ ico:'🥒', name:'Zucchini + tomate',     desc:'Fibra + licopeno',          qty:'1 taza'   }, { ico:'🥬', name:'Kale',               desc:'Antioxidante potente',      qty:'½ taza'   }],
+      [{ ico:'🥕', name:'Zanahoria + brócoli',   desc:'Betacaroteno + sulforafano',qty:'1 taza'   }, { ico:'🥬', name:'Acelgas',            desc:'Potasio + magnesio',        qty:'½ taza'   }],
+    ],
+
+    // Carbohidratos de almuerzo (solo si hay actividad — se muestra siempre como opcional)
+    carbSets: [
+      { ico:'🍚', name:'Arroz blanco',           qty:'½ taza cocida', desc:'Energía limpia · Día de entrenamiento' },
+      { ico:'🫘', name:'Lentejas',               qty:'½ taza cocida', desc:'Proteína vegetal + bajo IG' },
+      { ico:'🥔', name:'Papa cocida',            qty:'1 mediana',     desc:'Potasio + almidón resistente al enfriar' },
+      { ico:'🫘', name:'Fríjoles negros',        qty:'½ taza cocida', desc:'Fibra + proteína vegetal' },
+      { ico:'🌽', name:'Plátano verde cocido',   qty:'½ unidad',      desc:'Almidón resistente · Bajo IG' },
+      { ico:'🫘', name:'Garbanzos',              qty:'½ taza cocida', desc:'Proteína + fibra + bajo IG' },
+      { ico:'🍠', name:'Batata/Camote',          qty:'½ taza',        desc:'Betacaroteno + almidón resistente' },
+      { ico:'🍚', name:'Arroz integral',         qty:'½ taza cocida', desc:'Fibra + minerales · Más saciante' },
+      { ico:'🫘', name:'Lentejas + zanahoria',   qty:'½ taza',        desc:'Proteína vegetal + betacaroteno' },
+      { ico:'🥔', name:'Yuca cocida',            qty:'½ taza',        desc:'Colombiana ⭐ · Energía + potasio' },
+      { ico:'🫘', name:'Fríjoles rojos',         qty:'½ taza cocida', desc:'Hierro + fibra + proteína vegetal' },
+      { ico:'🌽', name:'Mazorca tierna',         qty:'½ unidad',      desc:'Fibra + antioxidantes naturales' },
+      { ico:'🍠', name:'Ñame cocido',            qty:'½ taza',        desc:'Colombiano ⭐ · Prebiótico natural' },
+      { ico:'🥔', name:'Papa + caldo de huesos', qty:'1 med + 1 taza',desc:'Colágeno + potasio · Día de fuerza' },
+    ],
+
+    swaps: [
+      { ico:'🐟', name:'Trucha',           g:130, prot:29 },
+      { ico:'🥩', name:'Lomo de res',      g:110, prot:28 },
+      { ico:'🐟', name:'Tilapia',          g:140, prot:28 },
+      { ico:'🥩', name:'Cerdo magro',      g:120, prot:26 },
+      { ico:'🐟', name:'Atún en agua',     g:100, prot:25 },
+    ],
   },
-  cena:{
-    name:'Cena',ico:'🌙',
-    main:{ico:'🐟',name:'Salmón / Trucha',cook:'Al horno con limón · A la plancha · Al vapor',note:'Omega-3 antiinflamatorio · Ideal en la noche · 22g por 100g',prot_per_100g:22},
-    swaps:[
-      {ico:'🍗',name:'Pollo al horno',g:120,prot:37},{ico:'🥚',name:'Tortilla de huevos',g:180,prot:22},
-      {ico:'🐟',name:'Sardinas',g:100,prot:25},{ico:'🥩',name:'Carne magra',g:100,prot:26},
-      {ico:'🦐',name:'Camarones',g:130,prot:26},{ico:'🧀',name:'Queso + huevo',g:120,prot:20},
+
+  cena: {
+    name: 'Cena', ico: '🌙',
+    has_caldo: false, has_psyllium: true,
+
+    mains: [
+      { ico:'🐟', name:'Salmón a la plancha',          note:'Omega-3 alto · Antiinflamatorio nocturno',  cook:'A la plancha con aceite de oliva y eneldo' },
+      { ico:'🐟', name:'Trucha al vapor',               note:'Omega-3 colombiano ⭐ · Digestión suave',   cook:'Al vapor con limón, ajo y hierbas frescas' },
+      { ico:'🐟', name:'Atún en agua + huevos',         note:'Proteína ligera · Fácil digestión nocturna',cook:'Atún escurrido + 1 huevo cocido + pepino' },
+      { ico:'🥚', name:'Huevos revueltos ligeros',      note:'Proteína completa · Cena liviana',          cook:'Revueltos en ghee con espinaca y sal' },
+      { ico:'🐟', name:'Tilapia al horno',              note:'Proteína magra · Bajo en grasa',            cook:'Al horno con limón, ajo y aceite de oliva' },
+      { ico:'🍗', name:'Pollo desmenuzado ligero',      note:'Proteína magra · Fácil digestión',          cook:'Cocido y desmenuzado con limón y cilantro' },
+      { ico:'🐟', name:'Sardinas en agua',              note:'Omega-3 alto · Calcio + fósforo',           cook:'Escurridas con limón, pepino y aguacate' },
+      { ico:'🥚', name:'Tortilla de claras + espinaca', note:'Proteína pura · Muy liviana para la noche', cook:'Claras batidas con espinaca en sartén antiadherente' },
+      { ico:'🐟', name:'Salmón + aguacate',             note:'Omega-3 + grasa monoinsaturada · Antiinflamatorio total', cook:'Salmón frío o tibio + ½ aguacate con limón' },
+      { ico:'🍗', name:'Pechuga de pollo fría',         note:'Proteína magra · Preparada con anticipación', cook:'Cocida con ajo y laurel · Servir fría o tibia' },
+      { ico:'🐟', name:'Trucha + queso cottage',        note:'Omega-3 + caseína lenta · Ideal para dormir', cook:'Trucha al vapor + 2 cdas cottage frío' },
+      { ico:'🥚', name:'Huevos + aguacate + tomate',    note:'Proteína + grasa + licopeno · Cena completa', cook:'Huevos cocidos + ½ aguacate + tomate cherry' },
+      { ico:'🐟', name:'Atún + pepino + oliva',         note:'Proteína ligera + grasa oleica · Digestión nocturna', cook:'Atún en agua + pepino + aceitunas + limón' },
+      { ico:'🍗', name:'Pollo al horno con cúrcuma',    note:'Antiinflamatorio nocturno + proteína',       cook:'Marinado en cúrcuma, ajo y aceite coco · Horno suave' },
     ],
-    companions:[
-      {ico:'🥒',name:'Pepino + aguacate',desc:'Digestivo · Hidratante · Grasa buena',qty:'½ pepino + ¼ aguacate'},
-      {ico:'🥬',name:'Ensalada de hojas verdes',desc:'Rúgula + espinaca · Magnesio para el sueño',qty:'2 tazas'},
-      {ico:'🫚',name:'Aceite de coco',desc:'Para cocinar · Antiinflamatorio',qty:'1 cucharadita'},
+
+    fats: [
+      { ico:'🥑', name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Saciedad nocturna' },
+      { ico:'🫒', name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio' },
+      { ico:'🌰', name:'Nueces',                 qty:'5 unidades',  desc:'Omega-3 + melatonina natural ⭐' },
+      { ico:'🌰', name:'Almendras',              qty:'10 unidades', desc:'Magnesio + vitamina E · Relax muscular' },
+      { ico:'🌱', name:'Semillas de chía',       qty:'1 cda',       desc:'Omega-3 + fibra · Microbiota nocturna' },
+      { ico:'🌱', name:'Linaza molida',          qty:'1 cda',       desc:'Omega-3 + fibra soluble' },
+      { ico:'🥑', name:'Aguacate + oliva',       qty:'⅛ + ½ cda',  desc:'Doble antiinflamatorio nocturno' },
+      { ico:'🧈', name:'Ghee',                   qty:'1 cdita',     desc:'Para saltear · Butirato intestinal' },
+      { ico:'🌰', name:'Nueces + almendras',     qty:'4+8 unidades',desc:'Omega-3 + magnesio · Sueño reparador' },
+      { ico:'🌱', name:'Semillas de calabaza',   qty:'1 cda',       desc:'Zinc + magnesio · Testosterona + sueño' },
+      { ico:'🫒', name:'Aceitunas negras',       qty:'6 unidades',  desc:'Grasa oleica + antioxidantes nocturnos' },
+      { ico:'🥥', name:'Aceite de coco',         qty:'1 cdita',     desc:'TCM · Cetosis suave nocturna' },
+      { ico:'🌱', name:'Mix chía + linaza',      qty:'1 cda c/u',   desc:'Fibra soluble doble · Microbiota activa' },
+      { ico:'🌰', name:'Almendras + chía',       qty:'10 + 1 cda',  desc:'Magnesio + Omega-3 · Recuperación nocturna' },
     ],
-    has_caldo:false,has_psyllium:true,
-  }
+
+    companionSets: [
+      [{ ico:'🥬', name:'Espinaca salteada',    desc:'Hierro + magnesio nocturno', qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Hidratante + silicio',      qty:'½ taza'   }],
+      [{ ico:'🥒', name:'Zucchini al vapor',    desc:'Bajo IG + fibra',            qty:'1 taza'   }, { ico:'🥬', name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'   }],
+      [{ ico:'🥦', name:'Brócoli al vapor',     desc:'Sulforafano + vitamina C',   qty:'½ taza'   }, { ico:'🥬', name:'Espinaca baby',      desc:'Hierro biodisponible',      qty:'1 taza'   }],
+      [{ ico:'🍄', name:'Champiñones salteados',desc:'Vitamina D + triptófano ⭐', qty:'½ taza'   }, { ico:'🥬', name:'Acelgas',            desc:'Potasio + magnesio',        qty:'1 taza'   }],
+      [{ ico:'🥬', name:'Kale + limón',         desc:'Antioxidante + vitamina C',  qty:'1 taza'   }, { ico:'🥒', name:'Pepino + menta',     desc:'Digestivo + refrescante',   qty:'½ taza'   }],
+      [{ ico:'🥬', name:'Espárragos al vapor',  desc:'Prebiótico + folato',        qty:'4 tallos' }, { ico:'🥬', name:'Espinaca',           desc:'Hierro + magnesio',         qty:'1 taza'   }],
+      [{ ico:'🫑', name:'Pimentón rojo asado',  desc:'Vitamina C + licopeno',      qty:'½ unidad' }, { ico:'🥬', name:'Rúgula',             desc:'Calcio + antioxidantes',    qty:'1 taza'   }],
+      [{ ico:'🥒', name:'Pepino + tomate',      desc:'Hidratante + licopeno',      qty:'1 taza'   }, { ico:'🥬', name:'Lechuga + cilantro', desc:'Fibra + digestivo',         qty:'1 taza'   }],
+      [{ ico:'🥦', name:'Coliflor al vapor',    desc:'Indol-3-carbinol detox',     qty:'½ taza'   }, { ico:'🥬', name:'Espinaca',           desc:'Hierro + magnesio',         qty:'1 taza'   }],
+      [{ ico:'🥬', name:'Acelgas + ajo',        desc:'Potasio + alicina',          qty:'1 taza'   }, { ico:'🥒', name:'Zucchini',           desc:'Bajo IG + fibra',           qty:'½ taza'   }],
+      [{ ico:'🍄', name:'Champiñones + tomillo',desc:'Vitamina D + antibacterial', qty:'½ taza'   }, { ico:'🥬', name:'Kale',               desc:'Antioxidante potente',      qty:'½ taza'   }],
+      [{ ico:'🥬', name:'Espinaca + nuez moscada',desc:'Hierro + digestivo suave', qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Silicio + hidratación',     qty:'½ taza'   }],
+      [{ ico:'🥦', name:'Brócoli + zanahoria',  desc:'Doble antioxidante',         qty:'½ taza'   }, { ico:'🥬', name:'Lechuga',            desc:'Fibra + folato',            qty:'1 taza'   }],
+      [{ ico:'🫑', name:'Pimentón + espinaca',  desc:'Vitamina C + hierro',        qty:'1 taza'   }, { ico:'🥒', name:'Pepino + limón',     desc:'Alcalinizante nocturno',    qty:'½ taza'   }],
+    ],
+
+    swaps: [
+      { ico:'🐟', name:'Trucha',           g:120, prot:26 },
+      { ico:'🥚', name:'Huevos enteros',   g:120, prot:15 },
+      { ico:'🍗', name:'Pollo cocido',     g:100, prot:25 },
+      { ico:'🐟', name:'Sardinas',         g:100, prot:20 },
+      { ico:'🐟', name:'Tilapia',          g:130, prot:26 },
+    ],
+  },
 };
+
 
 /* ══════════════════════════════════════════════════════
    INIT
@@ -1253,6 +1419,13 @@ window.addEventListener('orientationchange', () => {
    SINERGIA v3.4 — Script Bloque 2
    Helpers + Cálculo + Renders + IA OpenAI + Diario + Historial
 ══════════════════════════════════════════════════════ */
+// Rotación cada 14 días desde el 1 enero 2026
+function dayRotate(arr) {
+  const origin = new Date('2026-01-01');
+  const today  = new Date();
+  const diff   = Math.floor((today - origin) / 86400000);
+  return arr[diff % arr.length];
+}
 
 /* ── HELPERS ── */
 function todayKey() {
@@ -1412,6 +1585,12 @@ function renderMeals() {
 ══════════════════════════════════════════════════════ */
 function renderOneMeal(mealKey, containerId) {
   const plan      = MEAL_PLANS[mealKey];
+// Rotación diaria de proteína, grasa y acompañantes
+const mainProt  = dayRotate(plan.mains   || [plan.main]);
+const mainFat   = dayRotate(plan.fats    || []);
+const mainCarb = mealKey === 'almuerzo' ? dayRotate(plan.carbSets) : null;
+const companions = dayRotate(plan.companionSets || [plan.companions]);
+
   const container = document.getElementById(containerId);
   if (!plan || !container) return;
   const protPorComida = Math.round(S.prot / 3);
@@ -1467,7 +1646,7 @@ function renderOneMeal(mealKey, containerId) {
       <span class="swap-opt-name">${sw.name}</span>
       <span class="swap-opt-g">${sw.g}g · ${sw.prot}g prot</span>
     </div>`).join('');
-  const compHtml = plan.companions.map(c => `
+  const compHtml =companions.map(c => `
     <div class="companion-item">
       <span class="companion-ico">${c.ico}</span>
       <div class="companion-info">
@@ -1486,11 +1665,11 @@ function renderOneMeal(mealKey, containerId) {
     <div class="food-main">
       <div class="food-main-label">🥩 PROTEÍNA PRINCIPAL</div>
       <div class="food-main-header">
-        <span class="food-main-ico">${plan.main.ico}</span>
+        <span class="food-main-ico">${mainProt.ico}</span>
         <div class="food-main-info">
-          <div class="food-main-name">${plan.main.name} · <span style="color:#00c6ff">${mainQtyText}</span></div>
-          <div class="food-main-sub">${plan.main.note}</div>
-          <div class="food-main-cook">${plan.main.cook}</div>
+          <div class="food-main-name">${mainProt.name} · <span style="color:#00c6ff">${mainQtyText}</span></div>
+          <div class="food-main-sub">${mainProt.note}</div>
+<div class="food-main-cook">${mainProt.cook}</div>
         </div>
       </div>
       <div class="food-main-macro">
