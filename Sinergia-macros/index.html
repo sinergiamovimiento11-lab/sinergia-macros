@@ -1614,53 +1614,48 @@ function previewMealPhoto(mealKey, input) {
 }
 
 async function analyzeMealPhoto(mealKey) {
-  const fileInput  = document.getElementById('photo-input-' + mealKey);
-  const loadDiv    = document.getElementById('ai-load-' + mealKey);
-  const resultDiv  = document.getElementById('ai-result-' + mealKey);
-  const resultText = document.getElementById('ai-result-text-' + mealKey);
-  const btn        = document.getElementById('ai-btn-' + mealKey);
-  if (!fileInput?.files?.length) { showToast('Primero sube una foto 📸'); return; }
-  if (btn) btn.disabled = true;
-  if (loadDiv) { loadDiv.classList.add('show'); loadDiv.style.display = 'block'; }
-  if (resultDiv) { resultDiv.classList.remove('show'); resultDiv.style.display = 'none'; }
+  const input     = document.getElementById('photo-input-' + mealKey);  // ✅ ID correcto
+  const resultDiv = document.getElementById('ai-result-text-' + mealKey); // ✅ ID correcto
+  const loadDiv   = document.getElementById('ai-load-' + mealKey);
+  const resultBox = document.getElementById('ai-result-' + mealKey);
+
+  if (!input || !input.files[0]) { showToast('📷 Primero sube una foto'); return; }
+
+  if (loadDiv) loadDiv.classList.add('show');
+  if (resultBox) resultBox.classList.remove('show');
+
+  const file = input.files[0];
   const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64full = e.target.result; // data:image/...;base64,...
-    const goal = S.bodyGoal === 'lose' ? 'bajar grasa' : S.bodyGoal === 'build' ? 'ganar músculo' : 'mantener peso';
+  reader.onload = async (e) => {
+    const base64   = e.target.result.split(',')[1];
+    const mimeType = file.type;
+    const prompt   = `Eres un nutricionista experto del método Sinergia (enfoque hormonal Jaramillo). 
+Analiza esta foto de comida y responde en español:
+1. 🍽️ Qué alimentos identificas
+2. ✅ Qué tan alineado está con una dieta alta en proteína y baja en carbos refinados
+3. ⚠️ Qué mejorarías
+Sé breve y directo (máximo 5 líneas).`;
+
     try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const res = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + OPENAI_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: `Analiza este plato. Objetivo del usuario: ${goal}. Responde en español con: proteína estimada (g), carbohidratos (g), grasas (g), calorías totales, calidad del 1 al 10 según principios Sinergia (alimentos reales, sin procesados) y un consejo breve.` },
-              { type: 'image_url', image_url: { url: base64full, detail: 'low' } }
-            ]
-          }],
-          max_tokens: 300
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
       });
       const data = await res.json();
-      const text = data?.choices?.[0]?.message?.content || '⚠️ Sin respuesta del servidor.';
-      if (loadDiv) { loadDiv.classList.remove('show'); loadDiv.style.display = 'none'; }
-      if (resultDiv) { resultDiv.classList.add('show'); resultDiv.style.display = 'block'; }
-      if (resultText) resultText.innerText = text;
-    } catch(err) {
-      if (loadDiv) { loadDiv.classList.remove('show'); loadDiv.style.display = 'none'; }
-      if (resultDiv) { resultDiv.classList.add('show'); resultDiv.style.display = 'block'; }
-      if (resultText) resultText.innerText = '❌ Error de conexión. Verifica tu internet.';
-    } finally {
-      if (btn) btn.disabled = false;
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta de la IA';
+      if (loadDiv)   loadDiv.classList.remove('show');
+      if (resultBox) resultBox.classList.add('show');
+      if (resultDiv) resultDiv.textContent = text;
+    } catch (err) {
+      if (loadDiv) loadDiv.classList.remove('show');
+      if (resultDiv) resultDiv.textContent = '❌ Error: ' + err.message;
+      if (resultBox) resultBox.classList.add('show');
     }
   };
-  reader.readAsDataURL(fileInput.files[0]);
+  reader.readAsDataURL(file);
 }
+
 
 /* ══════════════════════════════════════════════════════
    COMPARTIR (S12)
@@ -1911,55 +1906,38 @@ function previewRegPhoto(mealKey, input) {
 }
 
 async function analyzeRegPhoto(mealKey) {
-  const fileInput = document.getElementById('reg-photo-' + mealKey);
-  const loadDiv   = document.getElementById('reg-ai-load-' + mealKey);
+  const input = document.getElementById('reg-photo-' + mealKey);
   const resultDiv = document.getElementById('reg-ai-result-' + mealKey);
-  const btn       = document.getElementById('reg-ai-btn-' + mealKey);
-  if (!fileInput || !fileInput.files[0]) { showToast('Primero selecciona una foto 📸'); return; }
-  if (btn) btn.disabled = true;
-  if (loadDiv) loadDiv.style.display = 'block';
-  if (resultDiv) { resultDiv.style.display = 'none'; resultDiv.innerHTML = ''; }
+  if (!input || !input.files[0]) return;
+
+  resultDiv.innerHTML = '<p style="color:#00c6ff">🔍 Analizando...</p>';
+
+  const file = input.files[0];
   const reader = new FileReader();
-  reader.onload = async function(e) {
-    const base64full = e.target.result;
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const mimeType = file.type;
+    const prompt = `Analiza esta comida brevemente en español:
+1. Alimentos detectados
+2. Proteína estimada (gramos)
+3. ¿Es una buena elección Sinergia? Sí/No y por qué en 1 línea.`;
+
     try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      const res = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + OPENAI_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Analiza este plato. Estima: proteína (g), carbos (g), grasas (g), calorías. ¿Es buena elección según principios Sinergia (alimentos reales, sin procesados)? Responde en español, muy breve.' },
-              { type: 'image_url', image_url: { url: base64full, detail: 'low' } }
-            ]
-          }],
-          max_tokens: 250
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
       });
       const data = await res.json();
-      const text = data?.choices?.[0]?.message?.content || '⚠️ Sin respuesta.';
-      if (loadDiv) loadDiv.style.display = 'none';
-      if (resultDiv) {
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = `<p style="color:#a8e6cf;white-space:pre-wrap">${text}</p>`;
-      }
-    } catch(err) {
-      if (loadDiv) loadDiv.style.display = 'none';
-      if (resultDiv) {
-        resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<p style="color:#ff6b6b">❌ Error de conexión.</p>';
-      }
-    } finally {
-      if (btn) btn.disabled = false;
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta';
+      resultDiv.innerHTML = `<p style="color:#e0ffe0;white-space:pre-wrap">${text}</p>`;
+    } catch (err) {
+      resultDiv.innerHTML = `<p style="color:#ff6b6b">❌ Error: ${err.message}</p>`;
     }
   };
-  reader.readAsDataURL(fileInput.files[0]);
+  reader.readAsDataURL(file);
 }
+
 
 /* ══════════════════════════════════════════════════════
    RESUMEN DEL DÍA (S17)
