@@ -1629,12 +1629,22 @@ async function analyzeMealPhoto(mealKey) {
   reader.onload = async (e) => {
     const base64   = e.target.result.split(',')[1];
     const mimeType = file.type;
-    const prompt   = `Eres un nutricionista experto del método Sinergia (enfoque hormonal Jaramillo). 
-Analiza esta foto de comida y responde en español:
-1. 🍽️ Qué alimentos identificas
-2. ✅ Qué tan alineado está con una dieta alta en proteína y baja en carbos refinados
-3. ⚠️ Qué mejorarías
-Sé breve y directo (máximo 5 líneas).`;
+   const prompt = `Eres el asistente nutricional de Sinergia En Movimiento (@sinergiamov), basado en el método hormonal del Dr. Carlos Jaramillo. Analiza esta foto de comida y responde en español con este formato exacto:
+
+🍽️ **Alimentos detectados:** [lista breve]
+
+🥩 **Proteína estimada:** [X–Xg aproximados] · [fuente: huevo/pollo/pescado/etc]
+
+⭐ **Puntaje Sinergia:** [X/10]
+
+[Si puntaje ≥ 8]: 🎉 ¡Excelente elección! Este plato está alineado con el método Sinergia. Tu insulina te lo agradece 💚
+[Si puntaje 5–7]: 👍 Buen plato con potencial. Pequeños ajustes y será perfecto.
+[Si puntaje < 5]: 💡 Podemos mejorar este plato juntos.
+
+✅ **Lo que está bien:** [1–2 puntos positivos concretos]
+⚠️ **Mejorar:** [1–2 sugerencias concretas estilo Sinergia]
+
+Sé motivacional, breve y directo. Máximo 8 líneas.`;
 
     try {
       const res = await fetch('/.netlify/functions/gemini', {
@@ -1917,11 +1927,14 @@ async function analyzeRegPhoto(mealKey) {
   reader.onload = async (e) => {
     const base64 = e.target.result.split(',')[1];
     const mimeType = file.type;
-    const prompt = `Analiza esta comida brevemente en español:
-1. Alimentos detectados
-2. Proteína estimada (gramos)
-3. ¿Es una buena elección Sinergia? Sí/No y por qué en 1 línea.`;
+    const prompt = `Eres el asistente de Sinergia En Movimiento. Analiza esta comida en español:
 
+🥩 Proteína estimada: [Xg aprox]
+⭐ Puntaje Sinergia: [X/10]
+[Si ≥ 8]: ✅ ¡Plato Sinergia! Sigue así 🔥
+[Si < 8]: 💡 Sugerencia rápida: [1 mejora concreta]
+
+Máximo 4 líneas. Tono motivacional.`;
     try {
       const res = await fetch('/.netlify/functions/gemini', {
         method: 'POST',
