@@ -1,6 +1,8 @@
 [build]
+  command = ""
   publish = "sinergia-macros"
 
 [functions]
   directory = "sinergia-macros/netlify/functions"
+
 
