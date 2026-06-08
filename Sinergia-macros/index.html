@@ -176,7 +176,7 @@ body.on-s0 #bnav{display:none!important}
 .avoid-tag{background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.3);border-radius:20px;padding:3px 10px;font-size:.7rem;color:rgba(255,255,255,.8)}
 .ia-meal-section{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
 .ia-meal-section h4{color:rgba(255,255,255,.7);font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.photo-drop-zone{border:2px dashed rgba(46,204,113,.4);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:rgba(46,204,113,.04);position:relative}
+.photo-drop-zone{border:2px dashed rgba(46,204,113,.4);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:rgba(46,204,113,.04);position:relative;overflow:hidden}
 .photo-drop-zone:hover{border-color:#2ecc71;background:rgba(46,204,113,.08)}
 .photo-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .photo-drop-zone .drop-icon{font-size:2rem}
@@ -218,15 +218,14 @@ body.on-s0 #bnav{display:none!important}
 #print-msg{display:none;background:linear-gradient(135deg,#1a9e8f,#127a6e);color:#fff;padding:18px 20px;border-radius:14px;font-size:15px;font-weight:700;text-align:center;margin:16px 0;line-height:1.6}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{overflow:visible!important;background:#fff!important}
-  #app{overflow:visible!important;height:auto!important}
-  #track{display:block!important;transform:none!important;height:auto!important;overflow:visible!important}
-  .slide{min-width:100%!important;height:auto!important;overflow:visible!important;page-break-after:always;display:none!important}
-  .slide::after{display:none!important}
-  #s9,#s10,#s11,#s12{display:block!important}
-  #pbar,#dots,#bnav,#ls{display:none!important}
-  .sbg,.bnx,.bbk,.sbtn,.swap-toggle,.swap-panel,.reg-panel,.ia-meal-section{display:none!important}
-   #print-msg{display:block!important}
+  body{overflow:visible!important;background:#fff!important;color:#000!important}
+  #app,#track{overflow:visible!important;height:auto!important;display:block!important;transform:none!important}
+  .slide{display:none!important}
+  #s12{display:block!important;min-width:100%!important;height:auto!important;overflow:visible!important;padding:20px!important}
+  #s12::after{display:none!important}
+  #pbar,#dots,#bnav,#ls,.sbg,.bnx,.bbk,.sbtn,.swap-toggle,.swap-panel,.reg-panel,.ia-meal-section{display:none!important}
+  #print-msg{display:block!important;background:#1a9e8f!important;color:#fff!important}
+ 
 }
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -1345,8 +1344,19 @@ function loadSavedPlan() {
   if (!saved) return;
   try {
     const p = JSON.parse(saved);
-    if (p && p.kcal) {
+    if (p && p.kcal && p.name) {
       Object.assign(S, p);
+      /* Pre-llenar el campo nombre en S0 */
+      const inp = document.getElementById('inp-name');
+      if (inp) inp.value = p.name;
+      /* Actualizar greeting */
+      const gr = document.getElementById('s9-greeting');
+      if (gr) gr.textContent = `Hola ${p.name.split(' ')[0]} 👋 · Tu plan hormonal personalizado`;
+      /* Redirigir directo a resultados */
+      setTimeout(() => {
+        showToast('✅ Bienvenido de nuevo, ' + p.name.split(' ')[0] + ' 👋');
+        goTo(9);
+      }, 1600);
     }
   } catch(e) {}
 }
@@ -1642,16 +1652,17 @@ function renderOneMeal(mealKey) {
     ${drinkHtml}
     ${fruitHtml}
     ${avoidHtml}
-    <div class="ia-meal-section">
+          
+         <div class="ia-meal-section">
       <h4>📸 Análisis IA de tu plato</h4>
       <div class="photo-drop-zone" id="drop-${mealKey}">
         <input type="file" accept="image/*" capture="environment"
           onchange="previewMealPhoto('${mealKey}',this)">
+        <div id="preview-${mealKey}" style="display:none;position:absolute;inset:0;border-radius:14px;overflow:hidden;z-index:2">
+          <img id="img-${mealKey}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">
+        </div>
         <span class="drop-icon">📷</span>
         <p>Toca para fotografiar tu plato</p>
-      </div>
-      <div id="preview-${mealKey}" style="display:none;margin-top:8px">
-        <img id="img-${mealKey}" style="width:100%;max-height:200px;object-fit:contain;border-radius:10px">
       </div>
       <button class="ai-analyze-btn" id="analyze-btn-${mealKey}"
         onclick="analyzeMealPhoto('${mealKey}')" disabled>
@@ -1662,8 +1673,9 @@ function renderOneMeal(mealKey) {
           border-top-color:#1a9e8f;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
         <div style="font-size:12px;color:rgba(255,255,255,.6)">Analizando tu plato...</div>
       </div>
-         <div id="ia-result-${mealKey}" class="ia-result-box" style="display:none"></div>
+      <div id="ia-result-${mealKey}" class="ia-result-box" style="display:none"></div>
     </div>
+
     <!-- ── REGISTRO INLINE v3.7 ── -->
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <div id="reg-status-${mealKey}"></div>
@@ -1736,7 +1748,8 @@ async function analyzeMealPhoto(mealKey) {
     if (load) load.style.display = 'none';
     if (res) {
       res.style.display = 'block';
-      res.textContent = data.result || data.error || 'Sin respuesta de la IA';
+      res.textContent = data.text || data.result || data.error || 'Sin respuesta de la IA';
+
     }
   } catch(e) {
     if (load) load.style.display = 'none';
