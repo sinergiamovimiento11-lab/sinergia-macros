@@ -1956,13 +1956,17 @@ function confirmMeal(mealId) {
     time: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) };
   localStorage.setItem('sinergia_daily_' + key, JSON.stringify(daily));
 
-  /* ── Suma automática al tracker ── */
-  const tKey = 'sinergia_trackers_' + key;
-  const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
-  tr.prot  = Math.round(((tr.prot  || 0) + Math.round(S.prot  / 3)) * 100) / 100;
-  tr.carb  = Math.round(((tr.carb  || 0) + Math.round(S.carb  / 3)) * 100) / 100;
-  tr.water = Math.round(((tr.water || 0) + Math.round((S.water / 3) * 100) / 100) * 100) / 100;
-  localStorage.setItem(tKey, JSON.stringify(tr));
+ /* ── Suma automática al tracker ── */
+const tKey = 'sinergia_trackers_' + key;
+const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
+const protPorComida  = Math.round(S.prot  / 3);
+const carbPorComida  = Math.round(S.carb  / 3);
+const aguaPorComida  = Math.round((S.water / 3) * 100) / 100;
+tr.prot  = Math.round(((tr.prot  || 0) + protPorComida)  * 100) / 100;
+tr.carb  = Math.round(((tr.carb  || 0) + carbPorComida)  * 100) / 100;
+tr.water = Math.round(((tr.water || 0) + aguaPorComida)  * 100) / 100;
+localStorage.setItem(tKey, JSON.stringify(tr));
+
 
   showToast(`✅ ${mealId.charAt(0).toUpperCase()+mealId.slice(1)} registrado · ${rating}`);
 
