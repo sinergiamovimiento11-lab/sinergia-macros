@@ -116,7 +116,10 @@ body.on-s0 #bnav{display:none!important}
 .food-main-cook{font-size:.68rem;color:#00c6ff;background:rgba(0,198,255,.1);border-radius:6px;padding:3px 8px;display:inline-block}
 .food-main-macro{display:flex;gap:8px;margin-top:8px}
 .food-main-macro span{background:rgba(26,158,143,.2);border:1px solid rgba(26,158,143,.3);border-radius:8px;padding:4px 10px;font-size:.75rem;font-weight:700;color:#1a9e8f}
+
+/* ── SWAP — UNA SOLA DEFINICIÓN ✅ ── */
 .swap-btn{width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.swap-toggle{width:100%;padding:9px;margin-bottom:8px;background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:700;cursor:pointer}
 .swap-panel{display:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;margin-bottom:8px}
 .swap-panel.open{display:block}
 .swap-panel-title{font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
@@ -126,6 +129,11 @@ body.on-s0 #bnav{display:none!important}
 .swap-opt-ico{font-size:1.4rem;display:block;margin-bottom:3px}
 .swap-opt-name{font-size:.72rem;font-weight:600;color:#fff;display:block}
 .swap-opt-g{font-size:.68rem;color:#1a9e8f;display:block}
+.swap-opt{display:flex;align-items:center;gap:10px;padding:9px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:.82rem}
+.swap-opt.sel{background:rgba(26,158,143,.25);border-color:#1a9e8f}
+.swap-opt strong{color:#fff;display:block;font-size:.82rem}
+.swap-opt span{color:rgba(255,255,255,.5);font-size:.72rem}
+
 .companions-title{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
 .companion-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,.06)}
 .companion-ico{font-size:1.2rem;flex-shrink:0}
@@ -136,10 +144,8 @@ body.on-s0 #bnav{display:none!important}
 .extra-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:8px}
 .extra-caldo{background:rgba(180,100,20,.15);border:1px solid rgba(180,100,20,.3)}
 .extra-psyllium{background:rgba(100,180,20,.15);border:1px solid rgba(100,180,20,.3)}
-/* ✅ NUEVO v3.5 — Bebida sugerida */
 .extra-drink{background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2)}
 .extra-drink .extra-name{color:#00c6ff}
-/* ✅ NUEVO v3.5 — Fruta opcional */
 .extra-fruit{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2)}
 .extra-fruit .extra-name{color:#2ecc71}
 .extra-ico{font-size:1.4rem;flex-shrink:0}
@@ -216,6 +222,8 @@ body.on-s0 #bnav{display:none!important}
 #ls .ls-bar{width:160px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
 #ls .ls-fill{height:100%;background:#fff;border-radius:2px;animation:lsfill 1.4s ease forwards}
 @keyframes lsfill{from{width:0}to{width:100%}}
+
+/* ── MEAL TABS ── */
 .meal-tabs{display:flex;gap:6px;margin-bottom:16px;background:rgba(0,0,0,.25);border-radius:14px;padding:4px}
 .meal-tab{flex:1;padding:10px 4px;border:none;background:transparent;color:rgba(255,255,255,.55);font-size:.72rem;font-weight:600;border-radius:10px;cursor:pointer;transition:all .25s;text-align:center;line-height:1.3}
 .meal-tab span{display:block;font-size:1.1rem;margin-bottom:2px}
@@ -247,6 +255,107 @@ body.on-s0 #bnav{display:none!important}
 .prot-eq-desc{font-size:.65rem;color:rgba(255,255,255,.5);margin-top:2px;line-height:1.3}
 .fat-btn{padding:9px 4px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:8px;color:rgba(255,255,255,.7);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s}
 .fat-btn.sel{background:rgba(26,158,143,.3);border-color:#1a9e8f;color:#fff}
+
+/* ── BLOQUES COMIDA v3.5 ── */
+.meal-fat-block{background:rgba(240,165,0,.12);border-left:3px solid #f0a500;border-radius:10px;padding:10px 14px;margin:8px 0}
+.meal-fat-block .fat-label{color:#f0a500;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px}
+.meal-fat-block .fat-name{color:#fff;font-weight:600;font-size:.95rem;margin:2px 0}
+.meal-fat-block .fat-desc{color:rgba(255,255,255,.6);font-size:.8rem}
+.meal-carb-block{background:rgba(224,90,154,.12);border-left:3px solid #e05a9a;border-radius:10px;padding:10px 14px;margin:8px 0}
+.meal-carb-block .carb-label{color:#e05a9a;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px}
+.meal-carb-block .carb-name{color:#fff;font-weight:600;font-size:.95rem;margin:2px 0}
+.meal-carb-block .carb-desc{color:rgba(255,255,255,.6);font-size:.8rem}
+.meal-drink-block{background:rgba(0,198,255,.10);border-left:3px solid #00c6ff;border-radius:10px;padding:10px 14px;margin:8px 0}
+.meal-drink-block .drink-name{color:#00c6ff;font-weight:600;font-size:.95rem}
+.meal-drink-block .drink-desc{color:rgba(255,255,255,.6);font-size:.8rem}
+.meal-fruit-block{background:rgba(46,204,113,.10);border-left:3px solid #2ecc71;border-radius:10px;padding:10px 14px;margin:8px 0}
+.meal-fruit-block .fruit-name{color:#2ecc71;font-weight:600;font-size:.95rem}
+.meal-fruit-block .fruit-note{color:rgba(255,255,255,.5);font-size:.75rem;margin-top:3px}
+
+/* ── SECCIÓN IA EN COMIDA ── */
+.ia-meal-section{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.ia-meal-section h4{color:rgba(255,255,255,.7);font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.photo-drop-zone{border:2px dashed rgba(46,204,113,.4);border-radius:14px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:rgba(46,204,113,.04);position:relative}
+.photo-drop-zone:hover{border-color:#2ecc71;background:rgba(46,204,113,.08)}
+.photo-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-drop-zone .drop-icon{font-size:2rem}
+.photo-drop-zone p{color:rgba(255,255,255,.5);font-size:.85rem;margin-top:6px}
+.photo-preview-img{width:100%;max-height:200px;object-fit:contain;border-radius:10px;margin:8px 0}
+.btn-analyze{width:100%;padding:12px;background:linear-gradient(135deg,#2ecc71,#00c6ff);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px}
+.ia-result-box{background:rgba(255,255,255,.05);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.5;white-space:pre-wrap}
+
+/* ── MACRO BAR + PROTEÍNA PRINCIPAL ── */
+.macro-bar-mini{display:flex;gap:8px;flex-wrap:wrap;background:rgba(0,0,0,.25);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.75rem;font-weight:700;color:rgba(255,255,255,.8)}
+.main-prot-block{background:rgba(26,158,143,.12);border:1.5px solid rgba(26,158,143,.3);border-radius:12px;padding:14px;margin-bottom:10px}
+.mpb-header{display:flex;align-items:flex-start;gap:12px}
+.mpb-ico{font-size:2rem;flex-shrink:0}
+.mpb-txt{flex:1}
+.mpb-txt strong{font-size:.95rem;font-weight:700;color:#fff;display:block;margin-bottom:3px}
+.mpb-txt span{font-size:.75rem;color:rgba(255,255,255,.6);display:block}
+.mpb-cook{font-size:.68rem;color:#00c6ff;background:rgba(0,198,255,.1);border-radius:6px;padding:3px 8px;display:inline-block;margin-top:6px}
+
+/* ── ACOMPAÑANTES ── */
+.comp-title{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 8px}
+.comp-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,.06)}
+.ci-ico{font-size:1.2rem;flex-shrink:0}
+.ci-txt{flex:1}
+.ci-txt strong{font-size:.8rem;font-weight:600;color:#fff;display:block}
+.ci-txt span{font-size:.68rem;color:rgba(255,255,255,.5)}
+
+/* ── EXTRA BLOCKS ── */
+.extra-block{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid;margin-bottom:8px}
+.eb-ico{font-size:1.4rem;flex-shrink:0;margin-top:2px}
+.eb-txt{flex:1}
+.eb-txt strong{font-size:.82rem;font-weight:700;color:#fff;display:block;margin-bottom:2px}
+.eb-txt span{font-size:.72rem;color:rgba(255,255,255,.6);display:block;line-height:1.4}
+
+/* ── EVITAR CONDICIONES ── */
+.avoid-block{background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.avoid-title{font-size:.75rem;font-weight:700;color:#e05252;margin-bottom:6px}
+.avoid-list{display:flex;flex-wrap:wrap;gap:6px}
+.avoid-tag{background:rgba(224,82,82,.15);border:1px solid rgba(224,82,82,.3);border-radius:20px;padding:3px 10px;font-size:.7rem;color:rgba(255,255,255,.8)}
+
+/* ── MÓDULO DIARIO ── */
+.daily-meal-card{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:8px}
+.daily-meal-card.done{background:rgba(26,158,143,.08);border-color:rgba(26,158,143,.3)}
+.dmc-left{display:flex;align-items:center;gap:10px}
+.dmc-ico{font-size:1.6rem}
+.dmc-txt strong{font-size:.9rem;font-weight:700;color:#fff;display:block}
+.dmc-txt span{font-size:.72rem;color:rgba(255,255,255,.5)}
+
+/* ── TRACKERS ── */
+.tracker-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin-bottom:10px}
+.tc-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.tc-ico{font-size:1.4rem}
+.tc-info{flex:1}
+.tc-info strong{font-size:.88rem;font-weight:700;color:#fff;display:block}
+.tc-info span{font-size:.72rem;color:rgba(255,255,255,.5)}
+.tc-pct{font-size:1rem;font-weight:800}
+.tc-bar{height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.tc-fill{height:100%;border-radius:4px;transition:width .5s}
+.tc-btns{display:flex;gap:6px}
+.tc-btns button{flex:1;padding:6px 4px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:rgba(255,255,255,.7);font-size:.72rem;cursor:pointer}
+
+/* ── HERO RING + MACROS ── */
+.hero-ring{display:flex;justify-content:center;margin-bottom:12px}
+.macro-row{display:flex;gap:8px;margin-bottom:8px}
+.macro-pill{flex:1;padding:10px 6px;border:1.5px solid;border-radius:12px;text-align:center}
+.mp-val{font-size:1.1rem;font-weight:800;display:block}
+.mp-lbl{font-size:.65rem;color:rgba(255,255,255,.6)}
+
+/* ── EQUIVALENCIAS PROTEÍNA ── */
+.prot-equiv-row{display:flex;flex-direction:column;gap:8px}
+.pe-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.pe-ico{font-size:1.4rem;flex-shrink:0}
+.pe-txt{flex:1}
+.pe-txt strong{font-size:.85rem;font-weight:700;color:#fff;display:block}
+.pe-txt span{font-size:.75rem;color:rgba(255,255,255,.6);display:block}
+
+/* ── REGISTRO COMIDAS ── */
+.reg-photo-wrap{margin-bottom:12px}
+.ia-response{background:rgba(26,158,143,.08);border:1px solid rgba(26,158,143,.25);border-radius:12px;padding:12px 14px;margin-top:8px}
+
+/* ── ANIMACIONES + RESPONSIVE ── */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
@@ -259,317 +368,7 @@ body.on-s0 #bnav{display:none!important}
   #pbar,#dots,#bnav,#ls{display:none!important}
   .sbg,.bnx,.bbk,.sbtn,.swap-btn,.mc-btn-ai,.mc-btn-manual{display:none!important}
 }
-@media(min-width:600px){.si{padding:0 8px}.og{grid-template-columns:1fr 1fr 1fr}.mg{grid-template-columns:1fr 1fr 1fr 1fr}}/* ── BLOQUES COMIDA v3.5 ── */
-.meal-fat-block {
-  background: rgba(240,165,0,0.12);
-  border-left: 3px solid #f0a500;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 8px 0;
-}
-.meal-fat-block .fat-label {
-  color: #f0a500;
-  font-weight: 700;
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.meal-fat-block .fat-name {
-  color: #fff;
-  font-weight: 600;
-  font-size: .95rem;
-  margin: 2px 0;
-}
-.meal-fat-block .fat-desc {
-  color: rgba(255,255,255,.6);
-  font-size: .8rem;
-}
-
-.meal-carb-block {
-  background: rgba(224,90,154,0.12);
-  border-left: 3px solid #e05a9a;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 8px 0;
-}
-.meal-carb-block .carb-label {
-  color: #e05a9a;
-  font-weight: 700;
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-}
-.meal-carb-block .carb-name {
-  color: #fff;
-  font-weight: 600;
-  font-size: .95rem;
-  margin: 2px 0;
-}
-.meal-carb-block .carb-desc {
-  color: rgba(255,255,255,.6);
-  font-size: .8rem;
-}
-
-.meal-drink-block {
-  background: rgba(0,198,255,0.10);
-  border-left: 3px solid #00c6ff;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 8px 0;
-}
-.meal-drink-block .drink-name {
-  color: #00c6ff;
-  font-weight: 600;
-  font-size: .95rem;
-}
-.meal-drink-block .drink-desc {
-  color: rgba(255,255,255,.6);
-  font-size: .8rem;
-}
-
-.meal-fruit-block {
-  background: rgba(46,204,113,0.10);
-  border-left: 3px solid #2ecc71;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 8px 0;
-}
-.meal-fruit-block .fruit-name {
-  color: #2ecc71;
-  font-weight: 600;
-  font-size: .95rem;
-}
-.meal-fruit-block .fruit-note {
-  color: rgba(255,255,255,.5);
-  font-size: .75rem;
-  margin-top: 3px;
-}
-
-/* ── SECCIÓN IA EN COMIDA ── */
-.ia-meal-section {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.ia-meal-section h4 {
-  color: rgba(255,255,255,.7);
-  font-size: .8rem;
-  text-transform: uppercase;
-  letter-spacing: .8px;
-  margin-bottom: 10px;
-}
-.photo-drop-zone {
-  border: 2px dashed rgba(46,204,113,.4);
-  border-radius: 14px;
-  padding: 28px 16px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .2s, background .2s;
-  background: rgba(46,204,113,.04);
-  position: relative;
-}
-.photo-drop-zone:hover {
-  border-color: #2ecc71;
-  background: rgba(46,204,113,.08);
-}
-.photo-drop-zone input[type=file] {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-}
-.photo-drop-zone .drop-icon { font-size: 2rem; }
-.photo-drop-zone p {
-  color: rgba(255,255,255,.5);
-  font-size: .85rem;
-  margin-top: 6px;
-}
-.photo-preview-img {
-  width: 100%;
-  max-height: 200px;
-  object-fit: contain;
-  border-radius: 10px;
-  margin: 8px 0;
-}
-.btn-analyze {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg,#2ecc71,#00c6ff);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-weight: 700;
-  font-size: .95rem;
-  cursor: pointer;
-  margin-top: 8px;
-}
-.ia-result-box {
-  background: rgba(255,255,255,.05);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-top: 10px;
-  font-size: .85rem;
-  color: rgba(255,255,255,.85);
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-/* Pegar antes del </style> */
-
-/* Barra mini de macros */
-.macro-bar-mini {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  background: rgba(0,0,0,.25); border-radius: 10px;
-  padding: 10px 12px; margin-bottom: 12px; font-size: .75rem;
-  font-weight: 700; color: rgba(255,255,255,.8);
-}
-
-/* Proteína principal */
-.main-prot-block {
-  background: rgba(26,158,143,.12);
-  border: 1.5px solid rgba(26,158,143,.3);
-  border-radius: 12px; padding: 14px; margin-bottom: 10px;
-}
-.mpb-header { display: flex; align-items: flex-start; gap: 12px; }
-.mpb-ico { font-size: 2rem; flex-shrink: 0; }
-.mpb-txt { flex: 1; }
-.mpb-txt strong { font-size: .95rem; font-weight: 700; color: #fff; display: block; margin-bottom: 3px; }
-.mpb-txt span { font-size: .75rem; color: rgba(255,255,255,.6); display: block; }
-.mpb-cook {
-  font-size: .68rem; color: #00c6ff;
-  background: rgba(0,198,255,.1); border-radius: 6px;
-  padding: 3px 8px; display: inline-block; margin-top: 6px;
-}
-
-/* Botón intercambios */
-.swap-toggle {
-  width: 100%; padding: 9px; margin-bottom: 8px;
-  background: rgba(255,255,255,.06);
-  border: 1px dashed rgba(255,255,255,.2);
-  border-radius: 8px; color: rgba(255,255,255,.7);
-  font-size: .78rem; font-weight: 700; cursor: pointer;
-}
-
-/* Panel intercambios */
-.swap-panel {
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px; padding: 12px; margin-bottom: 8px;
-}
-.swap-opt {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 10px; background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1); border-radius: 8px;
-  margin-bottom: 6px; cursor: pointer; font-size: .82rem;
-}
-.swap-opt.sel { background: rgba(26,158,143,.25); border-color: #1a9e8f; }
-.swap-opt strong { color: #fff; display: block; font-size: .82rem; }
-.swap-opt span { color: rgba(255,255,255,.5); font-size: .72rem; }
-
-/* Acompañantes */
-.comp-title {
-  font-size: .75rem; font-weight: 700;
-  color: rgba(255,255,255,.7); text-transform: uppercase;
-  letter-spacing: .5px; margin: 12px 0 8px;
-}
-.comp-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px; background: rgba(255,255,255,.04);
-  border-radius: 10px; margin-bottom: 6px;
-  border: 1px solid rgba(255,255,255,.06);
-}
-.ci-ico { font-size: 1.2rem; flex-shrink: 0; }
-.ci-txt { flex: 1; }
-.ci-txt strong { font-size: .8rem; font-weight: 600; color: #fff; display: block; }
-.ci-txt span { font-size: .68rem; color: rgba(255,255,255,.5); }
-
-/* Extra blocks (caldo, psyllium, bebida, fruta, carbo) */
-.extra-block {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 12px; border-radius: 12px;
-  border: 1px solid; margin-bottom: 8px;
-}
-.eb-ico { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
-.eb-txt { flex: 1; }
-.eb-txt strong { font-size: .82rem; font-weight: 700; color: #fff; display: block; margin-bottom: 2px; }
-.eb-txt span { font-size: .72rem; color: rgba(255,255,255,.6); display: block; line-height: 1.4; }
-
-/* Evitar condiciones */
-.avoid-block {
-  background: rgba(224,82,82,.08); border: 1px solid rgba(224,82,82,.2);
-  border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
-}
-.avoid-title { font-size: .75rem; font-weight: 700; color: #e05252; margin-bottom: 6px; }
-.avoid-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.avoid-tag {
-  background: rgba(224,82,82,.15); border: 1px solid rgba(224,82,82,.3);
-  border-radius: 20px; padding: 3px 10px;
-  font-size: .7rem; color: rgba(255,255,255,.8);
-}
-
-/* Módulo diario */
-.daily-meal-card {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 10px; padding: 12px 14px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px; margin-bottom: 8px;
-}
-.daily-meal-card.done {
-  background: rgba(26,158,143,.08);
-  border-color: rgba(26,158,143,.3);
-}
-.dmc-left { display: flex; align-items: center; gap: 10px; }
-.dmc-ico { font-size: 1.6rem; }
-.dmc-txt strong { font-size: .9rem; font-weight: 700; color: #fff; display: block; }
-.dmc-txt span { font-size: .72rem; color: rgba(255,255,255,.5); }
-
-/* Trackers */
-.tracker-card {
-  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px; padding: 14px; margin-bottom: 10px;
-}
-.tc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.tc-ico { font-size: 1.4rem; }
-.tc-info { flex: 1; }
-.tc-info strong { font-size: .88rem; font-weight: 700; color: #fff; display: block; }
-.tc-info span { font-size: .72rem; color: rgba(255,255,255,.5); }
-.tc-pct { font-size: 1rem; font-weight: 800; }
-.tc-bar { height: 8px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
-.tc-fill { height: 100%; border-radius: 4px; transition: width .5s; }
-.tc-btns { display: flex; gap: 6px; }
-.tc-btns button {
-  flex: 1; padding: 6px 4px; background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.12); border-radius: 6px;
-  color: rgba(255,255,255,.7); font-size: .72rem; cursor: pointer;
-}
-
-/* Hero ring + macros */
-.hero-ring { display: flex; justify-content: center; margin-bottom: 12px; }
-.macro-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.macro-pill {
-  flex: 1; padding: 10px 6px; border: 1.5px solid;
-  border-radius: 12px; text-align: center;
-}
-.mp-val { font-size: 1.1rem; font-weight: 800; display: block; }
-.mp-lbl { font-size: .65rem; color: rgba(255,255,255,.6); }
-
-/* Equivalencias proteína */
-.prot-equiv-row { display: flex; flex-direction: column; gap: 8px; }
-.pe-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
-.pe-ico { font-size: 1.4rem; flex-shrink: 0; }
-.pe-txt { flex: 1; }
-.pe-txt strong { font-size: .85rem; font-weight: 700; color: #fff; display: block; }
-.pe-txt span { font-size: .75rem; color: rgba(255,255,255,.6); display: block; }
-
-/* Registro comidas */
-.reg-photo-wrap { margin-bottom: 12px; }
-.ia-response {
-  background: rgba(26,158,143,.08); border: 1px solid rgba(26,158,143,.25);
-  border-radius: 12px; padding: 12px 14px; margin-top: 8px;
-}
-
+@media(min-width:600px){.si{padding:0 8px}.og{grid-template-columns:1fr 1fr 1fr}.mg{grid-template-columns:1fr 1fr 1fr 1fr}}
 </style>
 </head>
 <body class="on-s0">
@@ -2207,12 +2006,12 @@ function renderOneMeal(mealKey, containerId) {
     ${avoidHtml}
 
     <!-- IA Groq -->
-    <div class="ia-section">
-      <div class="ia-title">📸 Analiza tu plato con IA</div>
+    <div class="ia-meal-section">
+      <h4>📸 Analiza tu plato con IA</h4>
       <input type="file" accept="image/*" capture="environment"
         id="photo-${mealKey}" style="display:none"
         onchange="previewMealPhoto('${mealKey}')">
-      <label for="photo-${mealKey}" class="ia-btn">📷 Subir foto de mi plato</label>
+      <label for="photo-${mealKey}" class="btn-analyze">📷 Subir foto de mi plato</label>
       <img id="prev-${mealKey}" style="display:none;width:100%;border-radius:10px;margin-top:8px;object-fit:contain;max-height:200px">
       <button class="ia-analyze-btn" id="analyze-btn-${mealKey}"
         style="display:none" onclick="analyzeMealPhoto('${mealKey}')">
