@@ -136,6 +136,12 @@ body.on-s0 #bnav{display:none!important}
 .extra-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:8px}
 .extra-caldo{background:rgba(180,100,20,.15);border:1px solid rgba(180,100,20,.3)}
 .extra-psyllium{background:rgba(100,180,20,.15);border:1px solid rgba(100,180,20,.3)}
+/* ✅ NUEVO v3.5 — Bebida sugerida */
+.extra-drink{background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2)}
+.extra-drink .extra-name{color:#00c6ff}
+/* ✅ NUEVO v3.5 — Fruta opcional */
+.extra-fruit{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.2)}
+.extra-fruit .extra-name{color:#2ecc71}
 .extra-ico{font-size:1.4rem;flex-shrink:0}
 .extra-info{flex:1}
 .extra-name{font-size:.82rem;font-weight:700;color:#fff}
@@ -487,7 +493,6 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
     <div id="hero-wrap"></div>
     <div id="detail-wrap"></div>
     <div id="water-wrap"></div>
-    <!-- ✅ BOTÓN DENTRO DEL SLIDE S9 -->
     <button onclick="localStorage.removeItem('sinergia_plan'); goTo(0);"
       style="width:100%;margin-top:8px;background:transparent;border:1px solid rgba(255,255,255,.3);
       color:rgba(255,255,255,.7);padding:10px 20px;border-radius:20px;font-size:13px;cursor:pointer;">
@@ -627,18 +632,19 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
 </div>
 <script>
 /* ══════════════════════════════════════════════════════
-   SINERGIA v3.4 — Script Bloque 1
-   Datos + Navegación + Lógica base
+   SINERGIA v3.5 — Script Bloque 1A
+   Constantes + MEAL_PLANS (drinks + fruits incluidos)
+   IA: Groq via /.netlify/functions/gemini
    Fecha: Junio 2026
 ══════════════════════════════════════════════════════ */
 
-/* ── ✅ API KEY OPENAI ── */
-const OPENAI_KEY = 'PEGA_TU_CLAVE_AQUI';
+/* ── API: Groq vía Netlify Function ── */
+/* La clave real va en Netlify → Environment Variables → GROQ_API_KEY */
+/* El endpoint /.netlify/functions/gemini ya la usa internamente       */
 
-/* ── ✅ CÓDIGOS DE ACCESO MENSUALES ── */
 const CODES = ['MACROS-JUN26','SINERGIA-JUN26','NUTRI-JUN26'];
 
-/* ── ✅ USUARIOS AUTORIZADOS ── */
+/* ✅ v3.5 — Marcela añadida */
 const ALLOWED_NAMES = [
   'cristian aristizabal','jhonatan urrego','jhon fredy',
   'darwin zuluaga','sara gomez','geovany','gabriel gomez',
@@ -646,6 +652,7 @@ const ALLOWED_NAMES = [
   'leidy salazar','alexandra garcia','daniel henao',
   'cesar gomez','elizabeth','juan camilo','margarita',
   'yesse','esteban botero','juan andres','juan andres zuluaga',
+  'marcela',
 ];
 
 function normalizeName(str) {
@@ -670,7 +677,7 @@ let DS = {
 };
 
 /* ══════════════════════════════════════════════════════
-   DATOS — PRINCIPIOS SINERGIA (20)
+   PRINCIPIOS SINERGIA (20)
 ══════════════════════════════════════════════════════ */
 const PRINCIPLES = [
   {
@@ -721,9 +728,6 @@ const PRINCIPLES = [
   }
 ];
 
-/* ══════════════════════════════════════════════════════
-   DATOS — ACTIVIDADES
-══════════════════════════════════════════════════════ */
 const ACTIVITIES = [
   {id:'sedentary',ico:'🪑',name:'Sedentario',desc:'Trabajo de escritorio, sin ejercicio regular',factor:1.15,prot_factor:0.8},
   {id:'light',ico:'🚶',name:'Ligero',desc:'Camina bastante, 1–2 días de ejercicio por semana',factor:1.25,prot_factor:1.0},
@@ -732,9 +736,6 @@ const ACTIVITIES = [
   {id:'athlete',ico:'🏆',name:'Atleta',desc:'Doble sesión / trabajo físico muy intenso diario',factor:1.60,prot_factor:1.6},
 ];
 
-/* ══════════════════════════════════════════════════════
-   DATOS — OBJETIVOS
-══════════════════════════════════════════════════════ */
 const GOALS = [
   {id:'lose',ico:'🔥',name:'Bajar grasa',desc:'Déficit calórico suave · Preservar músculo',adj:-0.10,carb_pct:15,fat_pct:45,prot_pct:40},
   {id:'gain',ico:'💪',name:'Ganar músculo',desc:'Superávit mínimo · Proteína alta · Jaramillo',adj:+0.08,carb_pct:25,fat_pct:35,prot_pct:40},
@@ -744,9 +745,6 @@ const GOALS = [
   {id:'performance',ico:'🏅',name:'Rendimiento deportivo',desc:'Máximo rendimiento · Carbos estratégicos',adj:+0.05,carb_pct:30,fat_pct:30,prot_pct:40},
 ];
 
-/* ══════════════════════════════════════════════════════
-   DATOS — CONDICIONES MÉDICAS
-══════════════════════════════════════════════════════ */
 const CONDITIONS = [
   {id:'diabetes',ico:'🩸',name:'Diabetes / Prediabetes',desc:'Control glucémico estricto · Máx 10% carbos',avoid:['azúcar','harinas','arroz blanco','papa','jugo','miel','pan','cereal']},
   {id:'sop',ico:'🌸',name:'SOP / Insulinorresistencia',desc:'Protocolo hormonal · Low carb + proteína alta',avoid:['azúcar','harinas refinadas','lácteos en exceso','soja','alcohol']},
@@ -758,9 +756,6 @@ const CONDITIONS = [
   {id:'none',ico:'✅',name:'Sin condiciones',desc:'Plan estándar Sinergia · Sin restricciones especiales',avoid:[]},
 ];
 
-/* ══════════════════════════════════════════════════════
-   DATOS — AYUNOS
-══════════════════════════════════════════════════════ */
 const FASTS = [
   {id:'14/10',ico:'🌙',name:'14/10 — Suave',desc:'14h ayuno · 10h ventana de comida. Ideal para comenzar. Cenar a las 7 PM, desayunar a las 9 AM.',eating:10,fasting:14},
   {id:'16/8',ico:'⏱️',name:'16/8 — Estándar',desc:'16h ayuno · 8h ventana. El más estudiado. Cenar a las 7 PM, desayunar a las 11 AM.',eating:8,fasting:16},
@@ -769,225 +764,336 @@ const FASTS = [
 ];
 
 /* ══════════════════════════════════════════════════════
-   DATOS — PLANES DE COMIDA
+   MEAL_PLANS v3.5 — drinks + fruits en cada comida
 ══════════════════════════════════════════════════════ */
 const MEAL_PLANS = {
 
   desayuno: {
-    name: 'Desayuno', ico: '🌅',
-    has_caldo: true, has_psyllium: false,
+    name:'Desayuno', ico:'🌅',
+    has_caldo:true, has_psyllium:false,
 
-    mains: [
-      { ico:'🥚', name:'Huevos enteros revueltos',    note:'Yema esencial · Colina + vitamina D',        cook:'Revueltos en ghee con sal del Himalaya' },
-      { ico:'🥚', name:'Huevos + queso cottage',      note:'Proteína completa + probióticos',            cook:'Revueltos con 2 cdas de cottage' },
-      { ico:'🥛', name:'Yogur griego natural',        note:'Sin azúcar · Probióticos + calcio',          cook:'Con semillas de chía y canela sin azúcar' },
-      { ico:'🥚', name:'Tortilla de huevos y espinaca',note:'Hierro + proteína completa',                cook:'En sartén con aceite de coco, espinaca salteada' },
-      { ico:'🥚', name:'Huevos cocidos + aguacate',   note:'Grasa monoinsaturada + proteína completa',   cook:'Huevos duros + ½ aguacate con limón y sal' },
-      { ico:'🧀', name:'Huevos + kéfir',              note:'Microbiota activa + proteína completa',      cook:'Huevos fritos en ghee + vaso kéfir frío' },
-      { ico:'🥚', name:'Huevos al horno con tomate',  note:'Licopeno + proteína · Antiinflamatorio',     cook:'Horneados en molde con tomate cherry y orégano' },
-      { ico:'🥛', name:'Kéfir + semillas + nueces',   note:'Día ligero · Probióticos + Omega-3',         cook:'Kéfir natural + chía + linaza + 5 nueces' },
-      { ico:'🥚', name:'Huevos + sardinas',           note:'Omega-3 alto · Antiinflamatorio potente',    cook:'Huevos revueltos con sardinas en agua escurridas' },
-      { ico:'🥚', name:'Huevos + champiñones',        note:'Vitamina D + umami natural',                 cook:'Salteados en ghee con ajo y perejil' },
-      { ico:'🧀', name:'Queso cottage + huevos',      note:'Alta proteína + bajo IG',                    cook:'Cottage frío + 2 huevos cocidos + pepino' },
-      { ico:'🥚', name:'Huevos + espárragos',         note:'Prebiótico natural + proteína',              cook:'Fritos en aceite de oliva con espárragos al vapor' },
-      { ico:'🥛', name:'Yogur griego + semillas chía',note:'Fibra soluble + proteína + probióticos',     cook:'Yogur natural + 1 cda chía + canela + 5 almendras' },
-      { ico:'🥚', name:'Huevos + pimentón y cebolla', note:'Vitamina C + proteína completa',             cook:'Revueltos con pimentón rojo y cebolla cabezona' },
+    /* ✅ v3.5 — Bebidas rotativas Desayuno */
+    drinks:[
+      {ico:'☕',name:'Café negro sin azúcar',    desc:'Activa el metabolismo · Ayuno limpio',           note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té verde sin azúcar',       desc:'Antioxidante + EGCG · Activa termogénesis',     note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua tibia con limón',       desc:'Alcalinizante · Activa el hígado en ayunas',    note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de jengibre y canela',    desc:'Antiinflamatorio · Regula glucosa',              note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'☕',name:'Café con aceite de coco',    desc:'Bulletproof · TCM + energía sin insulina',      note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de manzanilla',           desc:'Antiinflamatorio · Relaja el intestino',        note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con cúrcuma y pimienta',desc:'Antiinflamatorio potente · Biodisponibilidad',  note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de hierbas sin azúcar',   desc:'Digestivo · Sin cafeína · Microbiota',          note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'☕',name:'Café negro + canela',         desc:'Regula glucosa + activa metabolismo',           note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua pura tibia',             desc:'Hidratación base · Activa la digestión',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de moringa',               desc:'Colombiana ⭐ · Hierro + vitaminas + proteína', note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'☕',name:'Café con ghee',               desc:'Bulletproof colombiano · Saciedad + energía',   note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de toronjil',              desc:'Colombiano ⭐ · Digestivo + ansiolítico',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con jengibre rallado',   desc:'Digestivo + antiinflamatorio + termogénico',   note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
     ],
 
-    fats: [
-      { ico:'🥑', name:'Aguacate',             qty:'¼ unidad',     desc:'Grasa monoinsaturada · Colombiana ⭐' },
-      { ico:'🫒', name:'Aceite de oliva',       qty:'1 cda',        desc:'Extra virgen · Antiinflamatorio' },
-      { ico:'🥥', name:'Aceite de coco',        qty:'1 cdita',      desc:'TCM · Energía sin pico de insulina' },
-      { ico:'🧈', name:'Ghee',                  qty:'1 cdita',      desc:'Mantequilla clarificada · Alta temperatura' },
-      { ico:'🌰', name:'Nueces',                qty:'7 unidades',   desc:'Omega-3 · Antiinflamatorio' },
-      { ico:'🌰', name:'Almendras',             qty:'15 unidades',  desc:'Vitamina E · Saciedad' },
-      { ico:'🌱', name:'Semillas de chía',      qty:'1 cda',        desc:'Omega-3 + fibra soluble' },
-      { ico:'🌱', name:'Linaza molida',         qty:'1 cda',        desc:'Omega-3 + estrógenos vegetales' },
-      { ico:'🥑', name:'Aguacate + oliva',      qty:'⅛ + ½ cda',   desc:'Doble fuente · Máximo antiinflamatorio' },
-      { ico:'🥥', name:'Coco rallado natural',  qty:'1 cda',        desc:'TCM + fibra · Sin azúcar' },
-      { ico:'🧈', name:'Mantequilla real',      qty:'1 cdita',      desc:'SÍ mantequilla · NO margarina' },
-      { ico:'🌰', name:'Mix nueces + almendras',qty:'5+8 unidades', desc:'Omega-3 + vitamina E combinados' },
-      { ico:'🌱', name:'Semillas de calabaza',  qty:'1 cda',        desc:'Zinc + magnesio + grasa saludable' },
-      { ico:'🫒', name:'Aceitunas negras',      qty:'6 unidades',   desc:'Grasa oleica + antioxidantes' },
+    /* ✅ v3.5 — Frutas bajo IG Desayuno */
+    fruits:[
+      {ico:'🍓',name:'Fresas frescas',       qty:'½ taza (8 fresas)',desc:'Bajo IG · Vitamina C · Antioxidante · Colombiana ⭐'},
+      {ico:'🫐',name:'Moras frescas',         qty:'½ taza',          desc:'Bajo IG · Antocianinas · Antiinflamatorio · Colombiana ⭐'},
+      {ico:'🍋',name:'Lulo en trozos',        qty:'½ unidad',        desc:'Colombiana ⭐ · Vitamina C + bajo IG · Sin azúcar añadida'},
+      {ico:'🍅',name:'Tomate de árbol',       qty:'1 pequeño',       desc:'Colombiano ⭐ · Bajo IG + licopeno + vitamina C'},
+      {ico:'🍓',name:'Fresas + moras mix',    qty:'¼ taza c/u',      desc:'Doble antioxidante · Bajo IG combinado'},
+      {ico:'🫐',name:'Moras + lulo',          qty:'¼ taza c/u',      desc:'Colombiano ⭐ · Vitamina C + antocianinas'},
+      {ico:'🍋',name:'Maracuyá natural',      qty:'½ unidad',        desc:'Colombiana ⭐ · Bajo IG · Vitamina C + fibra'},
+      {ico:'🍓',name:'Fresas con canela',     qty:'½ taza',          desc:'Canela regula glucosa · Bajo IG total'},
+      {ico:'🫐',name:'Moras con chía',        qty:'½ taza + 1 cdita',desc:'Fibra soluble + antocianinas · Microbiota'},
+      {ico:'🍅',name:'Tomate de árbol + mora',qty:'½ + ¼ taza',      desc:'Colombiano ⭐ · Doble bajo IG · Vitamina C'},
+      {ico:'🍋',name:'Lulo + fresa',          qty:'¼ taza c/u',      desc:'Colombiano ⭐ · Vitamina C alta · Bajo IG'},
+      {ico:'🫐',name:'Moras silvestres',      qty:'½ taza',          desc:'Antocianinas · Antiinflamatorio · Bajo IG'},
+      {ico:'🍓',name:'Fresas con limón',      qty:'½ taza',          desc:'Vitamina C potenciada · Antioxidante'},
+      {ico:'🍅',name:'Tomate de árbol solo',  qty:'1 mediano',       desc:'Colombiano ⭐ · Bajo IG · Licopeno + vitamina C'},
     ],
 
-    companionSets: [
-      [{ ico:'🥬', name:'Espinaca salteada',   desc:'Hierro + magnesio',       qty:'1 taza'    }, { ico:'🍅', name:'Tomate cherry',     desc:'Licopeno antioxidante',  qty:'6 unidades' }],
-      [{ ico:'🥒', name:'Pepino en rodajas',   desc:'Hidratante + silicio',    qty:'½ taza'    }, { ico:'🫑', name:'Pimentón rojo',     desc:'Vitamina C alta',        qty:'½ unidad'   }],
-      [{ ico:'🥦', name:'Brócoli al vapor',    desc:'Sulforafano detox',       qty:'½ taza'    }, { ico:'🥬', name:'Lechuga romana',    desc:'Fibra + folato',         qty:'1 taza'     }],
-      [{ ico:'🍄', name:'Champiñones salteados',desc:'Vitamina D + umami',     qty:'½ taza'    }, { ico:'🥬', name:'Acelgas',          desc:'Potasio + magnesio',     qty:'1 taza'     }],
-      [{ ico:'🥒', name:'Zucchini salteado',   desc:'Bajo IG + fibra',         qty:'½ taza'    }, { ico:'🍅', name:'Tomate en rodajas',desc:'Licopeno',               qty:'1 mediano'  }],
-      [{ ico:'🥬', name:'Espárragos',          desc:'Prebiótico natural',      qty:'4 tallos'  }, { ico:'🫑', name:'Pimentón amarillo',desc:'Vitamina C + betacaroteno',qty:'½ unidad' }],
-      [{ ico:'🥬', name:'Kale salteado',       desc:'Antioxidante potente',    qty:'1 taza'    }, { ico:'🥒', name:'Pepino + limón',   desc:'Alcalinizante',          qty:'½ taza'     }],
-      [{ ico:'🥬', name:'Espinaca + ajo',      desc:'Hierro + alicina',        qty:'1 taza'    }, { ico:'🍅', name:'Tomate + orégano', desc:'Licopeno + antiinflamatorio',qty:'1 med'  }],
-      [{ ico:'🥦', name:'Brócoli + zanahoria', desc:'Betacaroteno + sulforafano',qty:'½ taza'  }, { ico:'🥬', name:'Pepino',          desc:'Silicio + hidratación',  qty:'½ taza'     }],
-      [{ ico:'🫑', name:'Pimentón tricolor',   desc:'Vitaminas A, C, E',       qty:'½ unidad'  }, { ico:'🥬', name:'Rúgula',          desc:'Calcio + antioxidantes', qty:'1 taza'     }],
-      [{ ico:'🍄', name:'Champiñones + tomillo',desc:'Vitamina D + antibacterial',qty:'½ taza' }, { ico:'🥬', name:'Espinaca baby',   desc:'Hierro biodisponible',   qty:'1 taza'     }],
-      [{ ico:'🥒', name:'Pepino + menta',      desc:'Digestivo + refrescante', qty:'½ taza'    }, { ico:'🫑', name:'Pimentón verde',  desc:'Clorofila + vitamina C',  qty:'½ unidad'  }],
-      [{ ico:'🥬', name:'Acelgas + limón',     desc:'Potasio + vitamina C',    qty:'1 taza'    }, { ico:'🍅', name:'Tomates cherry',  desc:'Licopeno + hidratación',  qty:'6 unidades'}],
-      [{ ico:'🥦', name:'Coliflor al vapor',   desc:'Indol-3-carbinol detox',  qty:'½ taza'    }, { ico:'🥬', name:'Lechuga + pepino',desc:'Fibra + hidratación',     qty:'1 taza'     }],
+    mains:[
+      {ico:'🥚',name:'Huevos enteros revueltos',    note:'Yema esencial · Colina + vitamina D',       cook:'Revueltos en ghee con sal del Himalaya'},
+      {ico:'🥚',name:'Huevos + queso cottage',      note:'Proteína completa + probióticos',           cook:'Revueltos con 2 cdas de cottage'},
+      {ico:'🥛',name:'Yogur griego natural',        note:'Sin azúcar · Probióticos + calcio',         cook:'Con semillas de chía y canela sin azúcar'},
+      {ico:'🥚',name:'Tortilla de huevos y espinaca',note:'Hierro + proteína completa',               cook:'En sartén con aceite de coco, espinaca salteada'},
+      {ico:'🥚',name:'Huevos cocidos + aguacate',   note:'Grasa monoinsaturada + proteína completa',  cook:'Huevos duros + ½ aguacate con limón y sal'},
+      {ico:'🧀',name:'Huevos + kéfir',              note:'Microbiota activa + proteína completa',     cook:'Huevos fritos en ghee + vaso kéfir frío'},
+      {ico:'🥚',name:'Huevos al horno con tomate',  note:'Licopeno + proteína · Antiinflamatorio',    cook:'Horneados en molde con tomate cherry y orégano'},
+      {ico:'🥛',name:'Kéfir + semillas + nueces',   note:'Día ligero · Probióticos + Omega-3',        cook:'Kéfir natural + chía + linaza + 5 nueces'},
+      {ico:'🥚',name:'Huevos + sardinas',           note:'Omega-3 alto · Antiinflamatorio potente',   cook:'Huevos revueltos con sardinas en agua escurridas'},
+      {ico:'🥚',name:'Huevos + champiñones',        note:'Vitamina D + umami natural',                cook:'Salteados en ghee con ajo y perejil'},
+      {ico:'🧀',name:'Queso cottage + huevos',      note:'Alta proteína + bajo IG',                   cook:'Cottage frío + 2 huevos cocidos + pepino'},
+      {ico:'🥚',name:'Huevos + espárragos',         note:'Prebiótico natural + proteína',             cook:'Fritos en aceite de oliva con espárragos al vapor'},
+      {ico:'🥛',name:'Yogur griego + semillas chía',note:'Fibra soluble + proteína + probióticos',    cook:'Yogur natural + 1 cda chía + canela + 5 almendras'},
+      {ico:'🥚',name:'Huevos + pimentón y cebolla', note:'Vitamina C + proteína completa',            cook:'Revueltos con pimentón rojo y cebolla cabezona'},
     ],
 
-    swaps: [
-      { ico:'🍗', name:'Pechuga de pollo',     g:90,  prot:28 },
-      { ico:'🐟', name:'Atún en agua',          g:100, prot:25 },
-      { ico:'🧀', name:'Queso cottage',         g:120, prot:14 },
-      { ico:'🥛', name:'Yogur griego',          g:150, prot:15 },
-      { ico:'🐟', name:'Sardinas en agua',      g:100, prot:20 },
+    fats:[
+      {ico:'🥑',name:'Aguacate',            qty:'¼ unidad',    desc:'Grasa monoinsaturada · Colombiana ⭐'},
+      {ico:'🫒',name:'Aceite de oliva',      qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio'},
+      {ico:'🥥',name:'Aceite de coco',       qty:'1 cdita',     desc:'TCM · Energía sin pico de insulina'},
+      {ico:'🧈',name:'Ghee',                 qty:'1 cdita',     desc:'Mantequilla clarificada · Alta temperatura'},
+      {ico:'🌰',name:'Nueces',               qty:'7 unidades',  desc:'Omega-3 · Antiinflamatorio'},
+      {ico:'🌰',name:'Almendras',            qty:'15 unidades', desc:'Vitamina E · Saciedad'},
+      {ico:'🌱',name:'Semillas de chía',     qty:'1 cda',       desc:'Omega-3 + fibra soluble'},
+      {ico:'🌱',name:'Linaza molida',        qty:'1 cda',       desc:'Omega-3 + estrógenos vegetales'},
+      {ico:'🥑',name:'Aguacate + oliva',     qty:'⅛ + ½ cda',  desc:'Doble fuente · Máximo antiinflamatorio'},
+      {ico:'🥥',name:'Coco rallado natural', qty:'1 cda',       desc:'TCM + fibra · Sin azúcar'},
+      {ico:'🧈',name:'Mantequilla real',     qty:'1 cdita',     desc:'SÍ mantequilla · NO margarina'},
+      {ico:'🌰',name:'Mix nueces + almendras',qty:'5+8 unidades',desc:'Omega-3 + vitamina E combinados'},
+      {ico:'🌱',name:'Semillas de calabaza', qty:'1 cda',       desc:'Zinc + magnesio + grasa saludable'},
+      {ico:'🫒',name:'Aceitunas negras',     qty:'6 unidades',  desc:'Grasa oleica + antioxidantes'},
+    ],
+
+    companionSets:[
+      [{ico:'🥬',name:'Espinaca salteada',    desc:'Hierro + magnesio',         qty:'1 taza'   },{ico:'🍅',name:'Tomate cherry',      desc:'Licopeno antioxidante',     qty:'6 unidades'}],
+      [{ico:'🥒',name:'Pepino en rodajas',    desc:'Hidratante + silicio',      qty:'½ taza'   },{ico:'🫑',name:'Pimentón rojo',      desc:'Vitamina C alta',           qty:'½ unidad'  }],
+      [{ico:'🥦',name:'Brócoli al vapor',     desc:'Sulforafano detox',         qty:'½ taza'   },{ico:'🥬',name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'    }],
+      [{ico:'🍄',name:'Champiñones salteados',desc:'Vitamina D + umami',        qty:'½ taza'   },{ico:'🥬',name:'Acelgas',           desc:'Potasio + magnesio',        qty:'1 taza'    }],
+      [{ico:'🥒',name:'Zucchini salteado',    desc:'Bajo IG + fibra',           qty:'½ taza'   },{ico:'🍅',name:'Tomate en rodajas', desc:'Licopeno',                  qty:'1 mediano' }],
+      [{ico:'🥬',name:'Espárragos',           desc:'Prebiótico natural',        qty:'4 tallos' },{ico:'🫑',name:'Pimentón amarillo', desc:'Vitamina C + betacaroteno', qty:'½ unidad'  }],
+      [{ico:'🥬',name:'Kale salteado',        desc:'Antioxidante potente',      qty:'1 taza'   },{ico:'🥒',name:'Pepino + limón',    desc:'Alcalinizante',             qty:'½ taza'    }],
+      [{ico:'🥬',name:'Espinaca + ajo',       desc:'Hierro + alicina',          qty:'1 taza'   },{ico:'🍅',name:'Tomate + orégano',  desc:'Licopeno + antiinflamatorio',qty:'1 med'    }],
+      [{ico:'🥦',name:'Brócoli + zanahoria',  desc:'Betacaroteno + sulforafano',qty:'½ taza'   },{ico:'🥬',name:'Pepino',            desc:'Silicio + hidratación',     qty:'½ taza'    }],
+      [{ico:'🫑',name:'Pimentón tricolor',    desc:'Vitaminas A, C, E',         qty:'½ unidad' },{ico:'🥬',name:'Rúgula',            desc:'Calcio + antioxidantes',    qty:'1 taza'    }],
+      [{ico:'🍄',name:'Champiñones + tomillo',desc:'Vitamina D + antibacterial',qty:'½ taza'   },{ico:'🥬',name:'Espinaca baby',     desc:'Hierro biodisponible',      qty:'1 taza'    }],
+      [{ico:'🥒',name:'Pepino + menta',       desc:'Digestivo + refrescante',   qty:'½ taza'   },{ico:'🫑',name:'Pimentón verde',   desc:'Clorofila + vitamina C',    qty:'½ unidad'  }],
+      [{ico:'🥬',name:'Acelgas + limón',      desc:'Potasio + vitamina C',      qty:'1 taza'   },{ico:'🍅',name:'Tomates cherry',   desc:'Licopeno + hidratación',    qty:'6 unidades'}],
+      [{ico:'🥦',name:'Coliflor al vapor',    desc:'Indol-3-carbinol detox',    qty:'½ taza'   },{ico:'🥬',name:'Lechuga + pepino', desc:'Fibra + hidratación',       qty:'1 taza'    }],
+    ],
+
+    swaps:[
+      {ico:'🍗',name:'Pechuga de pollo', g:90,  prot:28},
+      {ico:'🐟',name:'Atún en agua',     g:100, prot:25},
+      {ico:'🧀',name:'Queso cottage',    g:120, prot:14},
+      {ico:'🥛',name:'Yogur griego',     g:150, prot:15},
+      {ico:'🐟',name:'Sardinas en agua', g:100, prot:20},
     ],
   },
 
   almuerzo: {
-    name: 'Almuerzo', ico: '☀️',
-    has_caldo: false, has_psyllium: false,
+    name:'Almuerzo', ico:'☀️',
+    has_caldo:false, has_psyllium:false,
 
-    mains: [
-      { ico:'🍗', name:'Pechuga de pollo a la plancha', note:'Proteína magra · Alta biodisponibilidad',    cook:'A la plancha con aceite de oliva, ajo y limón' },
-      { ico:'🥩', name:'Lomo de res a la plancha',      note:'Hierro hemo + zinc + proteína completa',     cook:'A la plancha con sal, pimienta y romero' },
-      { ico:'🐟', name:'Trucha al horno',                note:'Omega-3 colombiano ⭐ · Antiinflamatorio',   cook:'Al horno con limón, ajo y hierbas frescas' },
-      { ico:'🍗', name:'Muslo de pollo al horno',        note:'Más grasa natural · Sabor intenso',         cook:'Al horno con cúrcuma, ajo y aceite de coco' },
-      { ico:'🥩', name:'Carne molida magra salteada',    note:'Hierro + zinc · Fácil digestión',           cook:'Salteada con pimentón, cebolla y comino' },
-      { ico:'🐟', name:'Tilapia/Mojarra al vapor',       note:'Proteína ligera · Bajo en grasa',           cook:'Al vapor con jengibre, limón y cilantro' },
-      { ico:'🥩', name:'Cerdo magro lomo a la plancha',  note:'Proteína completa · Vitamina B1',           cook:'A la plancha con mostaza natural y romero' },
-      { ico:'🐟', name:'Salmón a la plancha',            note:'Omega-3 alto · Antiinflamatorio potente',   cook:'A la plancha con aceite de oliva y eneldo' },
-      { ico:'🍗', name:'Pollo al horno con cúrcuma',     note:'Antiinflamatorio + proteína magra',         cook:'Marinado en cúrcuma, ajo, limón y aceite coco' },
-      { ico:'🥩', name:'Hígado de res salteado',         note:'Vitamina A + B12 + hierro hemo ⭐ Máx 2x/sem',cook:'Salteado con cebolla, ajo y aceite de oliva' },
-      { ico:'🐟', name:'Atún fresco a la plancha',       note:'Omega-3 + selenio · Antiinflamatorio',      cook:'A la plancha con limón, sal y pimienta negra' },
-      { ico:'🍗', name:'Pechuga de pollo al horno',      note:'Proteína magra · Bajo en grasa saturada',   cook:'Al horno con ajo, tomillo y aceite de oliva' },
-      { ico:'🥩', name:'Res molida con vegetales',       note:'Hierro + zinc + fibra vegetal',             cook:'Salteada con brócoli, zanahoria y cúrcuma' },
-      { ico:'🐟', name:'Trucha + lentejas',              note:'Proteína completa + carbohidrato bajo IG',  cook:'Trucha al vapor + lentejas con comino y limón' },
+    /* ✅ v3.5 — Bebidas rotativas Almuerzo */
+    drinks:[
+      {ico:'💧',name:'Agua pura',                    desc:'Base de la hidratación · Sin reemplazar',    note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té verde frío sin azúcar',     desc:'Antioxidante + EGCG · Termogénico',          note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍋',name:'Agua con limón y menta',       desc:'Digestiva + refrescante · Sin azúcar',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con pepino y limón',      desc:'Alcalinizante + hidratante · Bajo IG',        note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de hierbas frío',           desc:'Digestivo · Sin cafeína · Microbiota',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con jengibre',            desc:'Digestivo + antiinflamatorio',               note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de menta piperita',         desc:'Digestivo · Relaja el intestino',            note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua tibia sola',              desc:'Mejor digestión · No diluye enzimas',        note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de toronjil frío',          desc:'Colombiano ⭐ · Digestivo + ansiolítico',    note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con cúrcuma fría',        desc:'Antiinflamatorio · Digestivo',               note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de canela sin azúcar',      desc:'Regula glucosa post-comida · Bajo IG',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con menta y limón',       desc:'Refrescante · Digestiva · Sin azúcar',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de moringa frío',           desc:'Colombiana ⭐ · Hierro + vitaminas',         note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua sola fría',               desc:'La más pura · Sin aditivos · Siempre válida', note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
     ],
 
-    fats: [
-      { ico:'🥑', name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Colombiana ⭐' },
-      { ico:'🫒', name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio' },
-      { ico:'🥑', name:'Aguacate + oliva',       qty:'⅛ + ½ cda',  desc:'Doble fuente antiinflamatoria' },
-      { ico:'🌰', name:'Almendras tostadas',     qty:'15 unidades', desc:'Vitamina E + grasa monoinsaturada' },
-      { ico:'🌰', name:'Nueces',                 qty:'7 unidades',  desc:'Omega-3 vegetal · Antiinflamatorio' },
-      { ico:'🥥', name:'Aceite de coco',         qty:'1 cdita',     desc:'TCM · Energía sin insulina' },
-      { ico:'🧈', name:'Ghee',                   qty:'1 cdita',     desc:'Para saltear · Alta temperatura' },
-      { ico:'🌱', name:'Semillas de girasol',    qty:'1 cda',       desc:'Vitamina E + zinc' },
-      { ico:'🫒', name:'Aceitunas verdes',       qty:'6 unidades',  desc:'Grasa oleica + sodio natural' },
-      { ico:'🥑', name:'Guacamole natural',      qty:'2 cdas',      desc:'Aguacate + limón + cilantro · Sin procesar' },
-      { ico:'🌰', name:'Mix semillas',           qty:'1 cda',       desc:'Chía + linaza + calabaza · Omega-3 total' },
-      { ico:'🫒', name:'Aceite de oliva + limón',qty:'1 cda',       desc:'Aderezo natural antiinflamatorio' },
-      { ico:'🌰', name:'Almendras + nueces',     qty:'8+5 unidades',desc:'Vitamina E + Omega-3 combinados' },
-      { ico:'🥥', name:'Coco rallado',           qty:'1 cda',       desc:'TCM + fibra · Sin azúcar añadida' },
+    /* ✅ v3.5 — Frutas bajo IG Almuerzo */
+    fruits:[
+      {ico:'🍓',name:'Fresas frescas',       qty:'½ taza',          desc:'Bajo IG · Vitamina C · Digestión post-almuerzo'},
+      {ico:'🫐',name:'Moras frescas',         qty:'½ taza',          desc:'Colombiana ⭐ · Antocianinas · Antiinflamatorio'},
+      {ico:'🍅',name:'Tomate de árbol',       qty:'1 pequeño',       desc:'Colombiano ⭐ · Bajo IG · Licopeno + vitamina C'},
+      {ico:'🍋',name:'Lulo en trozos',        qty:'½ unidad',        desc:'Colombiana ⭐ · Vitamina C + bajo IG'},
+      {ico:'🍓',name:'Fresas + moras',        qty:'¼ taza c/u',      desc:'Doble antioxidante · Bajo IG combinado'},
+      {ico:'🫐',name:'Moras + tomate árbol',  qty:'¼ taza c/u',      desc:'Colombiano ⭐ · Vitamina C + antocianinas'},
+      {ico:'🍋',name:'Maracuyá natural',      qty:'½ unidad',        desc:'Colombiana ⭐ · Bajo IG · Vitamina C + fibra'},
+      {ico:'🍓',name:'Fresas con limón',      qty:'½ taza',          desc:'Vitamina C potenciada · Digestivo'},
+      {ico:'🫐',name:'Moras con canela',      qty:'½ taza',          desc:'Canela regula glucosa post-almuerzo'},
+      {ico:'🍅',name:'Tomate de árbol + mora',qty:'½ + ¼ taza',      desc:'Colombiano ⭐ · Doble bajo IG'},
+      {ico:'🍋',name:'Lulo + fresa',          qty:'¼ taza c/u',      desc:'Colombiano ⭐ · Vitamina C alta'},
+      {ico:'🫐',name:'Moras silvestres',      qty:'½ taza',          desc:'Antocianinas · Antiinflamatorio potente'},
+      {ico:'🍓',name:'Fresas con chía',       qty:'½ taza + 1 cdita',desc:'Fibra soluble + vitamina C · Saciedad'},
+      {ico:'🍅',name:'Tomate de árbol solo',  qty:'1 mediano',       desc:'Colombiano ⭐ · Bajo IG · Licopeno'},
     ],
 
-    companionSets: [
-      [{ ico:'🥦', name:'Brócoli al vapor',      desc:'Sulforafano + vitamina C',  qty:'1 taza'   }, { ico:'🥕', name:'Zanahoria cocida',   desc:'Betacaroteno + fibra',      qty:'½ taza'   }],
-      [{ ico:'🥬', name:'Espinaca salteada',     desc:'Hierro + magnesio',         qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Hidratante + silicio',      qty:'½ taza'   }],
-      [{ ico:'🍅', name:'Tomate + lechuga',      desc:'Licopeno + fibra',          qty:'1 taza'   }, { ico:'🫑', name:'Pimentón rojo',      desc:'Vitamina C alta',           qty:'½ unidad' }],
-      [{ ico:'🥦', name:'Coliflor + brócoli',    desc:'Detox + sulforafano',       qty:'1 taza'   }, { ico:'🥬', name:'Espárragos',         desc:'Prebiótico + folato',       qty:'4 tallos' }],
-      [{ ico:'🥒', name:'Zucchini salteado',     desc:'Bajo IG + fibra',           qty:'1 taza'   }, { ico:'🥕', name:'Zanahoria rallada',  desc:'Betacaroteno crudo',        qty:'½ taza'   }],
-      [{ ico:'🥬', name:'Kale + limón',          desc:'Antioxidante + vitamina C', qty:'1 taza'   }, { ico:'🍄', name:'Champiñones',        desc:'Vitamina D + umami',        qty:'½ taza'   }],
-      [{ ico:'🥬', name:'Acelgas al vapor',      desc:'Potasio + magnesio',        qty:'1 taza'   }, { ico:'🥦', name:'Brócoli',            desc:'Sulforafano',               qty:'½ taza'   }],
-      [{ ico:'🫑', name:'Pimentón tricolor',     desc:'Vitaminas A, C, E',         qty:'1 unidad' }, { ico:'🥬', name:'Rúgula',             desc:'Calcio + antioxidantes',    qty:'1 taza'   }],
-      [{ ico:'🥕', name:'Zanahoria + pepino',    desc:'Betacaroteno + hidratación',qty:'1 taza'   }, { ico:'🥬', name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'   }],
-      [{ ico:'🥦', name:'Brócoli + zanahoria',   desc:'Doble antioxidante',        qty:'1 taza'   }, { ico:'🥒', name:'Pepino + tomate',    desc:'Hidratante + licopeno',     qty:'½ taza'   }],
-      [{ ico:'🍄', name:'Champiñones + espinaca',desc:'Vitamina D + hierro',       qty:'1 taza'   }, { ico:'🫑', name:'Pimentón verde',     desc:'Clorofila + vitamina C',    qty:'½ unidad' }],
-      [{ ico:'🥬', name:'Espinaca + ajo',        desc:'Hierro + alicina',          qty:'1 taza'   }, { ico:'🥦', name:'Coliflor',           desc:'Indol-3-carbinol detox',    qty:'½ taza'   }],
-      [{ ico:'🥒', name:'Zucchini + tomate',     desc:'Fibra + licopeno',          qty:'1 taza'   }, { ico:'🥬', name:'Kale',               desc:'Antioxidante potente',      qty:'½ taza'   }],
-      [{ ico:'🥕', name:'Zanahoria + brócoli',   desc:'Betacaroteno + sulforafano',qty:'1 taza'   }, { ico:'🥬', name:'Acelgas',            desc:'Potasio + magnesio',        qty:'½ taza'   }],
+    mains:[
+      {ico:'🍗',name:'Pechuga de pollo a la plancha',note:'Proteína magra · Alta biodisponibilidad',   cook:'A la plancha con aceite de oliva, ajo y limón'},
+      {ico:'🥩',name:'Lomo de res a la plancha',     note:'Hierro hemo + zinc + proteína completa',    cook:'A la plancha con sal, pimienta y romero'},
+      {ico:'🐟',name:'Trucha al horno',               note:'Omega-3 colombiano ⭐ · Antiinflamatorio',  cook:'Al horno con limón, ajo y hierbas frescas'},
+      {ico:'🍗',name:'Muslo de pollo al horno',       note:'Más grasa natural · Sabor intenso',        cook:'Al horno con cúrcuma, ajo y aceite de coco'},
+      {ico:'🥩',name:'Carne molida magra salteada',   note:'Hierro + zinc · Fácil digestión',          cook:'Salteada con pimentón, cebolla y comino'},
+      {ico:'🐟',name:'Tilapia/Mojarra al vapor',      note:'Proteína ligera · Bajo en grasa',          cook:'Al vapor con jengibre, limón y cilantro'},
+      {ico:'🥩',name:'Cerdo magro lomo a la plancha', note:'Proteína completa · Vitamina B1',          cook:'A la plancha con mostaza natural y romero'},
+      {ico:'🐟',name:'Salmón a la plancha',           note:'Omega-3 alto · Antiinflamatorio potente',  cook:'A la plancha con aceite de oliva y eneldo'},
+      {ico:'🍗',name:'Pollo al horno con cúrcuma',    note:'Antiinflamatorio + proteína magra',        cook:'Marinado en cúrcuma, ajo, limón y aceite coco'},
+      {ico:'🥩',name:'Hígado de res salteado',        note:'Vitamina A + B12 + hierro hemo ⭐ Máx 2x/sem',cook:'Salteado con cebolla, ajo y aceite de oliva'},
+      {ico:'🐟',name:'Atún fresco a la plancha',      note:'Omega-3 + selenio · Antiinflamatorio',     cook:'A la plancha con limón, sal y pimienta negra'},
+      {ico:'🍗',name:'Pechuga de pollo al horno',     note:'Proteína magra · Bajo en grasa saturada',  cook:'Al horno con ajo, tomillo y aceite de oliva'},
+      {ico:'🥩',name:'Res molida con vegetales',      note:'Hierro + zinc + fibra vegetal',            cook:'Salteada con brócoli, zanahoria y cúrcuma'},
+      {ico:'🐟',name:'Trucha + lentejas',             note:'Proteína completa + carbohidrato bajo IG', cook:'Trucha al vapor + lentejas con comino y limón'},
     ],
 
-    // Carbohidratos de almuerzo (solo si hay actividad — se muestra siempre como opcional)
-    carbSets: [
-      { ico:'🍚', name:'Arroz blanco',           qty:'½ taza cocida', desc:'Energía limpia · Día de entrenamiento' },
-      { ico:'🫘', name:'Lentejas',               qty:'½ taza cocida', desc:'Proteína vegetal + bajo IG' },
-      { ico:'🥔', name:'Papa cocida',            qty:'1 mediana',     desc:'Potasio + almidón resistente al enfriar' },
-      { ico:'🫘', name:'Fríjoles negros',        qty:'½ taza cocida', desc:'Fibra + proteína vegetal' },
-      { ico:'🌽', name:'Plátano verde cocido',   qty:'½ unidad',      desc:'Almidón resistente · Bajo IG' },
-      { ico:'🫘', name:'Garbanzos',              qty:'½ taza cocida', desc:'Proteína + fibra + bajo IG' },
-      { ico:'🍠', name:'Batata/Camote',          qty:'½ taza',        desc:'Betacaroteno + almidón resistente' },
-      { ico:'🍚', name:'Arroz integral',         qty:'½ taza cocida', desc:'Fibra + minerales · Más saciante' },
-      { ico:'🫘', name:'Lentejas + zanahoria',   qty:'½ taza',        desc:'Proteína vegetal + betacaroteno' },
-      { ico:'🥔', name:'Yuca cocida',            qty:'½ taza',        desc:'Colombiana ⭐ · Energía + potasio' },
-      { ico:'🫘', name:'Fríjoles rojos',         qty:'½ taza cocida', desc:'Hierro + fibra + proteína vegetal' },
-      { ico:'🌽', name:'Mazorca tierna',         qty:'½ unidad',      desc:'Fibra + antioxidantes naturales' },
-      { ico:'🍠', name:'Ñame cocido',            qty:'½ taza',        desc:'Colombiano ⭐ · Prebiótico natural' },
-      { ico:'🥔', name:'Papa + caldo de huesos', qty:'1 med + 1 taza',desc:'Colágeno + potasio · Día de fuerza' },
+    fats:[
+      {ico:'🥑',name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Colombiana ⭐'},
+      {ico:'🫒',name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio'},
+      {ico:'🥑',name:'Aguacate + oliva',       qty:'⅛ + ½ cda',  desc:'Doble fuente antiinflamatoria'},
+      {ico:'🌰',name:'Almendras tostadas',     qty:'15 unidades', desc:'Vitamina E + grasa monoinsaturada'},
+      {ico:'🌰',name:'Nueces',                 qty:'7 unidades',  desc:'Omega-3 vegetal · Antiinflamatorio'},
+      {ico:'🥥',name:'Aceite de coco',         qty:'1 cdita',     desc:'TCM · Energía sin insulina'},
+      {ico:'🧈',name:'Ghee',                   qty:'1 cdita',     desc:'Para saltear · Alta temperatura'},
+      {ico:'🌱',name:'Semillas de girasol',    qty:'1 cda',       desc:'Vitamina E + zinc'},
+      {ico:'🫒',name:'Aceitunas verdes',       qty:'6 unidades',  desc:'Grasa oleica + sodio natural'},
+      {ico:'🥑',name:'Guacamole natural',      qty:'2 cdas',      desc:'Aguacate + limón + cilantro · Sin procesar'},
+      {ico:'🌰',name:'Mix semillas',           qty:'1 cda',       desc:'Chía + linaza + calabaza · Omega-3 total'},
+      {ico:'🫒',name:'Aceite de oliva + limón',qty:'1 cda',       desc:'Aderezo natural antiinflamatorio'},
+      {ico:'🌰',name:'Almendras + nueces',     qty:'8+5 unidades',desc:'Vitamina E + Omega-3 combinados'},
+      {ico:'🥥',name:'Coco rallado',           qty:'1 cda',       desc:'TCM + fibra · Sin azúcar añadida'},
     ],
 
-    swaps: [
-      { ico:'🐟', name:'Trucha',           g:130, prot:29 },
-      { ico:'🥩', name:'Lomo de res',      g:110, prot:28 },
-      { ico:'🐟', name:'Tilapia',          g:140, prot:28 },
-      { ico:'🥩', name:'Cerdo magro',      g:120, prot:26 },
-      { ico:'🐟', name:'Atún en agua',     g:100, prot:25 },
+    companionSets:[
+      [{ico:'🥦',name:'Brócoli al vapor',      desc:'Sulforafano + vitamina C',  qty:'1 taza'   },{ico:'🥕',name:'Zanahoria cocida',   desc:'Betacaroteno + fibra',      qty:'½ taza'  }],
+      [{ico:'🥬',name:'Espinaca salteada',     desc:'Hierro + magnesio',         qty:'1 taza'   },{ico:'🥒',name:'Pepino fresco',      desc:'Hidratante + silicio',      qty:'½ taza'  }],
+      [{ico:'🍅',name:'Tomate + lechuga',      desc:'Licopeno + fibra',          qty:'1 taza'   },{ico:'🫑',name:'Pimentón rojo',      desc:'Vitamina C alta',           qty:'½ unidad'}],
+      [{ico:'🥦',name:'Coliflor + brócoli',    desc:'Detox + sulforafano',       qty:'1 taza'   },{ico:'🥬',name:'Espárragos',         desc:'Prebiótico + folato',       qty:'4 tallos'}],
+      [{ico:'🥒',name:'Zucchini salteado',     desc:'Bajo IG + fibra',           qty:'1 taza'   },{ico:'🥕',name:'Zanahoria rallada',  desc:'Betacaroteno crudo',        qty:'½ taza'  }],
+      [{ico:'🥬',name:'Kale + limón',          desc:'Antioxidante + vitamina C', qty:'1 taza'   },{ico:'🍄',name:'Champiñones',        desc:'Vitamina D + umami',        qty:'½ taza'  }],
+      [{ico:'🥬',name:'Acelgas al vapor',      desc:'Potasio + magnesio',        qty:'1 taza'   },{ico:'🥦',name:'Brócoli',            desc:'Sulforafano',               qty:'½ taza'  }],
+      [{ico:'🫑',name:'Pimentón tricolor',     desc:'Vitaminas A, C, E',         qty:'1 unidad' },{ico:'🥬',name:'Rúgula',             desc:'Calcio + antioxidantes',    qty:'1 taza'  }],
+      [{ico:'🥕',name:'Zanahoria + pepino',    desc:'Betacaroteno + hidratación',qty:'1 taza'   },{ico:'🥬',name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'  }],
+      [{ico:'🥦',name:'Brócoli + zanahoria',   desc:'Doble antioxidante',        qty:'1 taza'   },{ico:'🥒',name:'Pepino + tomate',    desc:'Hidratante + licopeno',     qty:'½ taza'  }],
+      [{ico:'🍄',name:'Champiñones + espinaca',desc:'Vitamina D + hierro',       qty:'1 taza'   },{ico:'🫑',name:'Pimentón verde',     desc:'Clorofila + vitamina C',    qty:'½ unidad'}],
+      [{ico:'🥬',name:'Espinaca + ajo',        desc:'Hierro + alicina',          qty:'1 taza'   },{ico:'🥦',name:'Coliflor',           desc:'Indol-3-carbinol detox',    qty:'½ taza'  }],
+      [{ico:'🥒',name:'Zucchini + tomate',     desc:'Fibra + licopeno',          qty:'1 taza'   },{ico:'🥬',name:'Kale',               desc:'Antioxidante potente',      qty:'½ taza'  }],
+      [{ico:'🥕',name:'Zanahoria + brócoli',   desc:'Betacaroteno + sulforafano',qty:'1 taza'   },{ico:'🥬',name:'Acelgas',            desc:'Potasio + magnesio',        qty:'½ taza'  }],
+    ],
+
+    carbSets:[
+      {ico:'🍚',name:'Arroz blanco',          qty:'½ taza cocida', desc:'Energía limpia · Día de entrenamiento'},
+      {ico:'🫘',name:'Lentejas',              qty:'½ taza cocida', desc:'Proteína vegetal + bajo IG'},
+      {ico:'🥔',name:'Papa cocida',           qty:'1 mediana',     desc:'Potasio + almidón resistente al enfriar'},
+      {ico:'🫘',name:'Fríjoles negros',       qty:'½ taza cocida', desc:'Fibra + proteína vegetal'},
+      {ico:'🌽',name:'Plátano verde cocido',  qty:'½ unidad',      desc:'Almidón resistente · Bajo IG'},
+      {ico:'🫘',name:'Garbanzos',             qty:'½ taza cocida', desc:'Proteína + fibra + bajo IG'},
+      {ico:'🍠',name:'Batata/Camote',         qty:'½ taza',        desc:'Betacaroteno + almidón resistente'},
+      {ico:'🍚',name:'Arroz integral',        qty:'½ taza cocida', desc:'Fibra + minerales · Más saciante'},
+      {ico:'🫘',name:'Lentejas + zanahoria',  qty:'½ taza',        desc:'Proteína vegetal + betacaroteno'},
+      {ico:'🥔',name:'Yuca cocida',           qty:'½ taza',        desc:'Colombiana ⭐ · Energía + potasio'},
+      {ico:'🫘',name:'Fríjoles rojos',        qty:'½ taza cocida', desc:'Hierro + fibra + proteína vegetal'},
+      {ico:'🌽',name:'Mazorca tierna',        qty:'½ unidad',      desc:'Fibra + antioxidantes naturales'},
+      {ico:'🍠',name:'Ñame cocido',           qty:'½ taza',        desc:'Colombiano ⭐ · Prebiótico natural'},
+      {ico:'🥔',name:'Papa + caldo de huesos',qty:'1 med + 1 taza',desc:'Colágeno + potasio · Día de fuerza'},
+    ],
+
+    swaps:[
+      {ico:'🐟',name:'Trucha',      g:130, prot:29},
+      {ico:'🥩',name:'Lomo de res', g:110, prot:28},
+      {ico:'🐟',name:'Tilapia',     g:140, prot:28},
+      {ico:'🥩',name:'Cerdo magro', g:120, prot:26},
+      {ico:'🐟',name:'Atún en agua',g:100, prot:25},
     ],
   },
 
   cena: {
-    name: 'Cena', ico: '🌙',
-    has_caldo: false, has_psyllium: true,
+    name:'Cena', ico:'🌙',
+    has_caldo:false, has_psyllium:true,
 
-    mains: [
-      { ico:'🐟', name:'Salmón a la plancha',          note:'Omega-3 alto · Antiinflamatorio nocturno',  cook:'A la plancha con aceite de oliva y eneldo' },
-      { ico:'🐟', name:'Trucha al vapor',               note:'Omega-3 colombiano ⭐ · Digestión suave',   cook:'Al vapor con limón, ajo y hierbas frescas' },
-      { ico:'🐟', name:'Atún en agua + huevos',         note:'Proteína ligera · Fácil digestión nocturna',cook:'Atún escurrido + 1 huevo cocido + pepino' },
-      { ico:'🥚', name:'Huevos revueltos ligeros',      note:'Proteína completa · Cena liviana',          cook:'Revueltos en ghee con espinaca y sal' },
-      { ico:'🐟', name:'Tilapia al horno',              note:'Proteína magra · Bajo en grasa',            cook:'Al horno con limón, ajo y aceite de oliva' },
-      { ico:'🍗', name:'Pollo desmenuzado ligero',      note:'Proteína magra · Fácil digestión',          cook:'Cocido y desmenuzado con limón y cilantro' },
-      { ico:'🐟', name:'Sardinas en agua',              note:'Omega-3 alto · Calcio + fósforo',           cook:'Escurridas con limón, pepino y aguacate' },
-      { ico:'🥚', name:'Tortilla de claras + espinaca', note:'Proteína pura · Muy liviana para la noche', cook:'Claras batidas con espinaca en sartén antiadherente' },
-      { ico:'🐟', name:'Salmón + aguacate',             note:'Omega-3 + grasa monoinsaturada · Antiinflamatorio total', cook:'Salmón frío o tibio + ½ aguacate con limón' },
-      { ico:'🍗', name:'Pechuga de pollo fría',         note:'Proteína magra · Preparada con anticipación', cook:'Cocida con ajo y laurel · Servir fría o tibia' },
-      { ico:'🐟', name:'Trucha + queso cottage',        note:'Omega-3 + caseína lenta · Ideal para dormir', cook:'Trucha al vapor + 2 cdas cottage frío' },
-      { ico:'🥚', name:'Huevos + aguacate + tomate',    note:'Proteína + grasa + licopeno · Cena completa', cook:'Huevos cocidos + ½ aguacate + tomate cherry' },
-      { ico:'🐟', name:'Atún + pepino + oliva',         note:'Proteína ligera + grasa oleica · Digestión nocturna', cook:'Atún en agua + pepino + aceitunas + limón' },
-      { ico:'🍗', name:'Pollo al horno con cúrcuma',    note:'Antiinflamatorio nocturno + proteína',       cook:'Marinado en cúrcuma, ajo y aceite coco · Horno suave' },
+    /* ✅ v3.5 — Bebidas rotativas Cena */
+    drinks:[
+      {ico:'🍵',name:'Té de manzanilla',           desc:'Ansiolítico natural · Relaja para dormir',     note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de valeriana',             desc:'Mejora el sueño profundo · Sin cafeína',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua tibia sola',             desc:'Digestión suave · No diluye enzimas',          note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de toronjil',              desc:'Colombiano ⭐ · Ansiolítico + digestivo',      note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de pasiflora',             desc:'Colombiana ⭐ · Sedante natural · Sueño',      note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con limón tibia',        desc:'Alcalinizante nocturno · Hígado activo',       note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de tilo',                  desc:'Relajante · Reduce cortisol nocturno',         note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de canela sin azúcar',     desc:'Regula glucosa nocturna · Bajo IG',            note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con cúrcuma tibia',      desc:'Antiinflamatorio nocturno · Hígado',           note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de hierbas digestivo',     desc:'Digestivo · Sin cafeína · Microbiota nocturna',note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de menta piperita',        desc:'Digestivo · Relaja el intestino para el ayuno',note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'💧',name:'Agua con jengibre tibia',     desc:'Digestivo + antiinflamatorio nocturno',        note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de ashwagandha',           desc:'Adaptógeno · Reduce cortisol · Sueño reparador',note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
+      {ico:'🍵',name:'Té de rooibos sin azúcar',    desc:'Sin cafeína · Antioxidante · Sueño profundo',  note:'💧 Agua: 20 min después de comer para no diluir enzimas digestivas'},
     ],
 
-    fats: [
-      { ico:'🥑', name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Saciedad nocturna' },
-      { ico:'🫒', name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio' },
-      { ico:'🌰', name:'Nueces',                 qty:'5 unidades',  desc:'Omega-3 + melatonina natural ⭐' },
-      { ico:'🌰', name:'Almendras',              qty:'10 unidades', desc:'Magnesio + vitamina E · Relax muscular' },
-      { ico:'🌱', name:'Semillas de chía',       qty:'1 cda',       desc:'Omega-3 + fibra · Microbiota nocturna' },
-      { ico:'🌱', name:'Linaza molida',          qty:'1 cda',       desc:'Omega-3 + fibra soluble' },
-      { ico:'🥑', name:'Aguacate + oliva',       qty:'⅛ + ½ cda',  desc:'Doble antiinflamatorio nocturno' },
-      { ico:'🧈', name:'Ghee',                   qty:'1 cdita',     desc:'Para saltear · Butirato intestinal' },
-      { ico:'🌰', name:'Nueces + almendras',     qty:'4+8 unidades',desc:'Omega-3 + magnesio · Sueño reparador' },
-      { ico:'🌱', name:'Semillas de calabaza',   qty:'1 cda',       desc:'Zinc + magnesio · Testosterona + sueño' },
-      { ico:'🫒', name:'Aceitunas negras',       qty:'6 unidades',  desc:'Grasa oleica + antioxidantes nocturnos' },
-      { ico:'🥥', name:'Aceite de coco',         qty:'1 cdita',     desc:'TCM · Cetosis suave nocturna' },
-      { ico:'🌱', name:'Mix chía + linaza',      qty:'1 cda c/u',   desc:'Fibra soluble doble · Microbiota activa' },
-      { ico:'🌰', name:'Almendras + chía',       qty:'10 + 1 cda',  desc:'Magnesio + Omega-3 · Recuperación nocturna' },
+    /* ✅ v3.5 — Frutas bajo IG Cena (porciones pequeñas) */
+    fruits:[
+      {ico:'🍓',name:'Fresas frescas',        qty:'¼ taza (4 fresas)',desc:'Bajo IG · Vitamina C · Porción pequeña nocturna'},
+      {ico:'🫐',name:'Moras frescas',          qty:'¼ taza',           desc:'Colombiana ⭐ · Antocianinas · Antiinflamatorio'},
+      {ico:'🍅',name:'Tomate de árbol',        qty:'½ pequeño',        desc:'Colombiano ⭐ · Bajo IG · Licopeno nocturno'},
+      {ico:'🍋',name:'Lulo en trozos',         qty:'¼ unidad',         desc:'Colombiana ⭐ · Vitamina C + bajo IG · Ligero'},
+      {ico:'🍓',name:'Fresas + moras',         qty:'⅛ taza c/u',       desc:'Doble antioxidante · Porción mínima nocturna'},
+      {ico:'🫐',name:'Moras con canela',       qty:'¼ taza',           desc:'Canela regula glucosa nocturna · Bajo IG'},
+      {ico:'🍋',name:'Maracuyá natural',       qty:'¼ unidad',         desc:'Colombiana ⭐ · Bajo IG · Vitamina C ligera'},
+      {ico:'🍓',name:'Fresas con chía',        qty:'¼ taza + ½ cdita', desc:'Fibra soluble + vitamina C · Microbiota nocturna'},
+      {ico:'🫐',name:'Moras + tomate árbol',   qty:'⅛ taza c/u',       desc:'Colombiano ⭐ · Doble bajo IG · Porción mínima'},
+      {ico:'🍅',name:'Tomate de árbol solo',   qty:'½ mediano',        desc:'Colombiano ⭐ · Bajo IG · Licopeno + vitamina C'},
+      {ico:'🍋',name:'Lulo + mora',            qty:'⅛ taza c/u',       desc:'Colombiano ⭐ · Vitamina C alta · Muy ligero'},
+      {ico:'🫐',name:'Moras silvestres',       qty:'¼ taza',           desc:'Antocianinas · Antiinflamatorio nocturno'},
+      {ico:'🍓',name:'Fresas con limón',       qty:'¼ taza',           desc:'Vitamina C potenciada · Digestivo nocturno'},
+      {ico:'🍅',name:'Tomate árbol + fresa',   qty:'¼ + ⅛ taza',       desc:'Colombiano ⭐ · Doble vitamina C · Bajo IG total'},
     ],
 
-    companionSets: [
-      [{ ico:'🥬', name:'Espinaca salteada',    desc:'Hierro + magnesio nocturno', qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Hidratante + silicio',      qty:'½ taza'   }],
-      [{ ico:'🥒', name:'Zucchini al vapor',    desc:'Bajo IG + fibra',            qty:'1 taza'   }, { ico:'🥬', name:'Lechuga romana',     desc:'Fibra + folato',            qty:'1 taza'   }],
-      [{ ico:'🥦', name:'Brócoli al vapor',     desc:'Sulforafano + vitamina C',   qty:'½ taza'   }, { ico:'🥬', name:'Espinaca baby',      desc:'Hierro biodisponible',      qty:'1 taza'   }],
-      [{ ico:'🍄', name:'Champiñones salteados',desc:'Vitamina D + triptófano ⭐', qty:'½ taza'   }, { ico:'🥬', name:'Acelgas',            desc:'Potasio + magnesio',        qty:'1 taza'   }],
-      [{ ico:'🥬', name:'Kale + limón',         desc:'Antioxidante + vitamina C',  qty:'1 taza'   }, { ico:'🥒', name:'Pepino + menta',     desc:'Digestivo + refrescante',   qty:'½ taza'   }],
-      [{ ico:'🥬', name:'Espárragos al vapor',  desc:'Prebiótico + folato',        qty:'4 tallos' }, { ico:'🥬', name:'Espinaca',           desc:'Hierro + magnesio',         qty:'1 taza'   }],
-      [{ ico:'🫑', name:'Pimentón rojo asado',  desc:'Vitamina C + licopeno',      qty:'½ unidad' }, { ico:'🥬', name:'Rúgula',             desc:'Calcio + antioxidantes',    qty:'1 taza'   }],
-      [{ ico:'🥒', name:'Pepino + tomate',      desc:'Hidratante + licopeno',      qty:'1 taza'   }, { ico:'🥬', name:'Lechuga + cilantro', desc:'Fibra + digestivo',         qty:'1 taza'   }],
-      [{ ico:'🥦', name:'Coliflor al vapor',    desc:'Indol-3-carbinol detox',     qty:'½ taza'   }, { ico:'🥬', name:'Espinaca',           desc:'Hierro + magnesio',         qty:'1 taza'   }],
-      [{ ico:'🥬', name:'Acelgas + ajo',        desc:'Potasio + alicina',          qty:'1 taza'   }, { ico:'🥒', name:'Zucchini',           desc:'Bajo IG + fibra',           qty:'½ taza'   }],
-      [{ ico:'🍄', name:'Champiñones + tomillo',desc:'Vitamina D + antibacterial', qty:'½ taza'   }, { ico:'🥬', name:'Kale',               desc:'Antioxidante potente',      qty:'½ taza'   }],
-      [{ ico:'🥬', name:'Espinaca + nuez moscada',desc:'Hierro + digestivo suave', qty:'1 taza'   }, { ico:'🥒', name:'Pepino fresco',      desc:'Silicio + hidratación',     qty:'½ taza'   }],
-      [{ ico:'🥦', name:'Brócoli + zanahoria',  desc:'Doble antioxidante',         qty:'½ taza'   }, { ico:'🥬', name:'Lechuga',            desc:'Fibra + folato',            qty:'1 taza'   }],
-      [{ ico:'🫑', name:'Pimentón + espinaca',  desc:'Vitamina C + hierro',        qty:'1 taza'   }, { ico:'🥒', name:'Pepino + limón',     desc:'Alcalinizante nocturno',    qty:'½ taza'   }],
+    mains:[
+      {ico:'🐟',name:'Salmón a la plancha',         note:'Omega-3 alto · Antiinflamatorio nocturno',  cook:'A la plancha con aceite de oliva y eneldo'},
+      {ico:'🐟',name:'Trucha al vapor',              note:'Omega-3 colombiano ⭐ · Digestión suave',   cook:'Al vapor con limón, ajo y hierbas frescas'},
+      {ico:'🐟',name:'Atún en agua + huevos',        note:'Proteína ligera · Fácil digestión nocturna',cook:'Atún escurrido + 1 huevo cocido + pepino'},
+      {ico:'🥚',name:'Huevos revueltos ligeros',     note:'Proteína completa · Cena liviana',          cook:'Revueltos en ghee con espinaca y sal'},
+      {ico:'🐟',name:'Tilapia al horno',             note:'Proteína magra · Bajo en grasa',            cook:'Al horno con limón, ajo y aceite de oliva'},
+      {ico:'🍗',name:'Pollo desmenuzado ligero',     note:'Proteína magra · Fácil digestión',          cook:'Cocido y desmenuzado con limón y cilantro'},
+      {ico:'🐟',name:'Sardinas en agua',             note:'Omega-3 alto · Calcio + fósforo',           cook:'Escurridas con limón, pepino y aguacate'},
+      {ico:'🥚',name:'Tortilla de claras + espinaca',note:'Proteína pura · Muy liviana para la noche', cook:'Claras batidas con espinaca en sartén antiadherente'},
+      {ico:'🐟',name:'Salmón + aguacate',            note:'Omega-3 + grasa monoinsaturada · Total',    cook:'Salmón frío o tibio + ½ aguacate con limón'},
+      {ico:'🍗',name:'Pechuga de pollo fría',        note:'Proteína magra · Preparada con anticipación',cook:'Cocida con ajo y laurel · Servir fría o tibia'},
+      {ico:'🐟',name:'Trucha + queso cottage',       note:'Omega-3 + caseína lenta · Ideal para dormir',cook:'Trucha al vapor + 2 cdas cottage frío'},
+      {ico:'🥚',name:'Huevos + aguacate + tomate',   note:'Proteína + grasa + licopeno · Cena completa',cook:'Huevos cocidos + ½ aguacate + tomate cherry'},
+      {ico:'🐟',name:'Atún + pepino + oliva',        note:'Proteína ligera + grasa oleica · Nocturna',  cook:'Atún en agua + pepino + aceitunas + limón'},
+      {ico:'🍗',name:'Pollo al horno con cúrcuma',   note:'Antiinflamatorio nocturno + proteína',       cook:'Marinado en cúrcuma, ajo y aceite coco · Horno suave'},
     ],
 
-    swaps: [
-      { ico:'🐟', name:'Trucha',           g:120, prot:26 },
-      { ico:'🥚', name:'Huevos enteros',   g:120, prot:15 },
-      { ico:'🍗', name:'Pollo cocido',     g:100, prot:25 },
-      { ico:'🐟', name:'Sardinas',         g:100, prot:20 },
-      { ico:'🐟', name:'Tilapia',          g:130, prot:26 },
+    fats:[
+      {ico:'🥑',name:'Aguacate',              qty:'¼ unidad',    desc:'Grasa monoinsaturada · Saciedad nocturna'},
+      {ico:'🫒',name:'Aceite de oliva',        qty:'1 cda',       desc:'Extra virgen · Antiinflamatorio'},
+      {ico:'🌰',name:'Nueces',                 qty:'5 unidades',  desc:'Omega-3 + melatonina natural ⭐'},
+      {ico:'🌰',name:'Almendras',              qty:'10 unidades', desc:'Magnesio + vitamina E · Relax muscular'},
+      {ico:'🌱',name:'Semillas de chía',       qty:'1 cda',       desc:'Omega-3 + fibra · Microbiota nocturna'},
+            {ico:'🌱',name:'Linaza molida',          qty:'1 cda',       desc:'Omega-3 + fibra soluble'},
+      {ico:'🥑',name:'Aguacate + oliva',        qty:'⅛ + ½ cda',  desc:'Doble antiinflamatorio nocturno'},
+      {ico:'🧈',name:'Ghee',                    qty:'1 cdita',     desc:'Para saltear · Butirato intestinal'},
+      {ico:'🌰',name:'Nueces + almendras',      qty:'4+8 unidades',desc:'Omega-3 + magnesio · Sueño reparador'},
+      {ico:'🌱',name:'Semillas de calabaza',    qty:'1 cda',       desc:'Zinc + magnesio · Testosterona + sueño'},
+      {ico:'🫒',name:'Aceitunas negras',        qty:'6 unidades',  desc:'Grasa oleica + antioxidantes nocturnos'},
+      {ico:'🥥',name:'Aceite de coco',          qty:'1 cdita',     desc:'TCM · Cetosis suave nocturna'},
+      {ico:'🌱',name:'Mix chía + linaza',       qty:'1 cda c/u',   desc:'Fibra soluble doble · Microbiota activa'},
+      {ico:'🌰',name:'Almendras + chía',        qty:'10 + 1 cda',  desc:'Magnesio + Omega-3 · Recuperación nocturna'},
+    ],
+
+    companionSets:[
+      [{ico:'🥬',name:'Espinaca salteada',     desc:'Hierro + magnesio nocturno',  qty:'1 taza'   },{ico:'🥒',name:'Pepino fresco',       desc:'Hidratante + silicio',         qty:'½ taza'  }],
+      [{ico:'🥒',name:'Zucchini al vapor',     desc:'Bajo IG + fibra',             qty:'1 taza'   },{ico:'🥬',name:'Lechuga romana',      desc:'Fibra + folato',               qty:'1 taza'  }],
+      [{ico:'🥦',name:'Brócoli al vapor',      desc:'Sulforafano + vitamina C',    qty:'½ taza'   },{ico:'🥬',name:'Espinaca baby',       desc:'Hierro biodisponible',         qty:'1 taza'  }],
+      [{ico:'🍄',name:'Champiñones salteados', desc:'Vitamina D + triptófano ⭐',  qty:'½ taza'   },{ico:'🥬',name:'Acelgas',             desc:'Potasio + magnesio',           qty:'1 taza'  }],
+      [{ico:'🥬',name:'Kale + limón',          desc:'Antioxidante + vitamina C',   qty:'1 taza'   },{ico:'🥒',name:'Pepino + menta',      desc:'Digestivo + refrescante',      qty:'½ taza'  }],
+      [{ico:'🥬',name:'Espárragos al vapor',   desc:'Prebiótico + folato',         qty:'4 tallos' },{ico:'🥬',name:'Espinaca',            desc:'Hierro + magnesio',            qty:'1 taza'  }],
+      [{ico:'🫑',name:'Pimentón rojo asado',   desc:'Vitamina C + licopeno',       qty:'½ unidad' },{ico:'🥬',name:'Rúgula',              desc:'Calcio + antioxidantes',       qty:'1 taza'  }],
+      [{ico:'🥒',name:'Pepino + tomate',       desc:'Hidratante + licopeno',       qty:'1 taza'   },{ico:'🥬',name:'Lechuga + cilantro',  desc:'Fibra + digestivo',            qty:'1 taza'  }],
+      [{ico:'🥦',name:'Coliflor al vapor',     desc:'Indol-3-carbinol detox',      qty:'½ taza'   },{ico:'🥬',name:'Espinaca',            desc:'Hierro + magnesio',            qty:'1 taza'  }],
+      [{ico:'🥬',name:'Acelgas + ajo',         desc:'Potasio + alicina',           qty:'1 taza'   },{ico:'🥒',name:'Zucchini',            desc:'Bajo IG + fibra',              qty:'½ taza'  }],
+      [{ico:'🍄',name:'Champiñones + tomillo', desc:'Vitamina D + antibacterial',  qty:'½ taza'   },{ico:'🥬',name:'Kale',                desc:'Antioxidante potente',         qty:'½ taza'  }],
+      [{ico:'🥬',name:'Espinaca + nuez moscada',desc:'Hierro + digestivo suave',   qty:'1 taza'   },{ico:'🥒',name:'Pepino fresco',       desc:'Silicio + hidratación',        qty:'½ taza'  }],
+      [{ico:'🥦',name:'Brócoli + zanahoria',   desc:'Doble antioxidante',          qty:'½ taza'   },{ico:'🥬',name:'Lechuga',             desc:'Fibra + folato',               qty:'1 taza'  }],
+      [{ico:'🫑',name:'Pimentón + espinaca',   desc:'Vitamina C + hierro',         qty:'1 taza'   },{ico:'🥒',name:'Pepino + limón',      desc:'Alcalinizante nocturno',       qty:'½ taza'  }],
+    ],
+
+    swaps:[
+      {ico:'🐟',name:'Trucha',        g:120, prot:26},
+      {ico:'🥚',name:'Huevos enteros',g:120, prot:15},
+      {ico:'🍗',name:'Pollo cocido',  g:100, prot:25},
+      {ico:'🐟',name:'Sardinas',      g:100, prot:20},
+      {ico:'🐟',name:'Tilapia',       g:130, prot:26},
     ],
   },
-};
 
-
+}; /* ══ FIN MEAL_PLANS ══ */
+</script>
+<script>
 /* ══════════════════════════════════════════════════════
-   INIT
+   SINERGIA v3.5 — Script Bloque 1B
+   Init + Navegación + Acceso + Setters + Builders + Swipe
 ══════════════════════════════════════════════════════ */
+
+/* ── INIT ── */
 window.addEventListener('load', () => {
   setTimeout(() => {
     const ls = document.getElementById('ls');
@@ -1004,9 +1110,7 @@ window.addEventListener('load', () => {
   loadSavedPlan();
 });
 
-/* ══════════════════════════════════════════════════════
-   NAVEGACIÓN
-══════════════════════════════════════════════════════ */
+/* ── NAVEGACIÓN ── */
 function goTo(n) {
   if (n < 0 || n >= TOTAL) return;
   cur = n;
@@ -1052,8 +1156,8 @@ function updateNav() {
     'Registrar →','Ver resumen →','Ver historial →','← Volver'
   ];
   btnNext.textContent = labels[cur] || 'Siguiente →';
-  btnBack.style.display = cur === 0 ? 'none' : 'flex';
-  btnNext.style.display = (cur === 13 || cur === 18) ? 'none' : 'flex';
+  btnBack.style.display  = cur === 0 ? 'none' : 'flex';
+  btnNext.style.display  = (cur === 13 || cur === 18) ? 'none' : 'flex';
 }
 
 function updateProgress() {
@@ -1077,38 +1181,40 @@ function updateDots() {
   });
 }
 
-/* ══════════════════════════════════════════════════════
-   ACCESO
-══════════════════════════════════════════════════════ */
+/* ── ACCESO ── */
 function checkAccess() {
   const nameRaw = document.getElementById('inp-name').value.trim();
   const code    = document.getElementById('inp-code').value.trim().toUpperCase();
   const err     = document.getElementById('acc-err');
   if (!nameRaw) { err.textContent = 'Escribe tu nombre para continuar'; return; }
-  if (!CODES.includes(code)) { err.textContent = '❌ Código incorrecto. Contacta a Juan Andrés @sinergiamov'; return; }
+  if (!CODES.includes(code)) {
+    err.textContent = '❌ Código incorrecto. Contacta a Juan Andrés @sinergiamov'; return;
+  }
   const nameNorm = normalizeName(nameRaw);
   const isAllowed = ALLOWED_NAMES.some(n =>
     normalizeName(n) === nameNorm ||
     nameNorm.startsWith(normalizeName(n)) ||
-    normalizeName(n).startsWith(nameNorm));
-  if (!isAllowed) { err.textContent = '❌ Nombre no autorizado. Contacta a Juan Andrés @sinergiamov'; return; }
+    normalizeName(n).startsWith(nameNorm)
+  );
+  if (!isAllowed) {
+    err.textContent = '❌ Nombre no autorizado. Contacta a Juan Andrés @sinergiamov'; return;
+  }
   err.textContent = '';
   S.name = nameRaw;
-  document.getElementById('s9-greeting').textContent = `¡Hola ${nameRaw}! 👋 Aquí está tu plan personalizado`;
+  document.getElementById('s9-greeting').textContent =
+    `¡Hola ${nameRaw}! 👋 Aquí está tu plan personalizado`;
   goTo(1);
 }
 
-/* ══════════════════════════════════════════════════════
-   VALIDACIÓN PERFIL
-══════════════════════════════════════════════════════ */
+/* ── VALIDACIÓN PERFIL ── */
 function validateProfile() {
   const age    = parseFloat(document.getElementById('inp-age').value);
   const weight = parseFloat(document.getElementById('inp-weight').value);
   const height = parseFloat(document.getElementById('inp-height').value);
-  if (!S.sex)                         { showToast('Selecciona tu sexo'); return false; }
-  if (!age||age<15||age>90)           { showToast('Ingresa una edad válida (15–90)'); return false; }
-  if (!weight||weight<30||weight>250) { showToast('Ingresa un peso válido'); return false; }
-  if (!height||height<130||height>220){ showToast('Ingresa una estatura válida'); return false; }
+  if (!S.sex)                          { showToast('Selecciona tu sexo'); return false; }
+  if (!age    || age < 15 || age > 90) { showToast('Ingresa una edad válida (15–90)'); return false; }
+  if (!weight || weight < 30 || weight > 250) { showToast('Ingresa un peso válido'); return false; }
+  if (!height || height < 130 || height > 220){ showToast('Ingresa una estatura válida'); return false; }
   S.age    = age;
   S.weight = weight;
   S.height = height;
@@ -1116,37 +1222,27 @@ function validateProfile() {
   return true;
 }
 
-/* ══════════════════════════════════════════════════════
-   SETTERS
-══════════════════════════════════════════════════════ */
+/* ── SETTERS ── */
 function setSex(v) {
   S.sex = v;
-  document.getElementById('sx-m').classList.toggle('sel', v==='m');
-  document.getElementById('sx-f').classList.toggle('sel', v==='f');
+  document.getElementById('sx-m').classList.toggle('sel', v === 'm');
+  document.getElementById('sx-f').classList.toggle('sel', v === 'f');
 }
-
 function setActivity(id) {
   S.activity = id;
-  document.querySelectorAll('.act-item[data-id]').forEach(el => {
-    el.classList.toggle('sel', el.dataset.id === id);
-  });
+  document.querySelectorAll('.act-item[data-id]').forEach(el =>
+    el.classList.toggle('sel', el.dataset.id === id));
 }
-
 function setGoal(id) {
   S.goal = id;
-  document.querySelectorAll('.goal-item').forEach(el => {
-    el.classList.toggle('sel', el.dataset.id === id);
-  });
+  document.querySelectorAll('.goal-item').forEach(el =>
+    el.classList.toggle('sel', el.dataset.id === id));
 }
-
-/* ✅ SETTER AYUNO — faltaba esta función */
 function setFast(id) {
   S.fast = id;
-  document.querySelectorAll('.fast-item').forEach(el => {
-    el.classList.toggle('sel', el.dataset.id === id);
-  });
+  document.querySelectorAll('.fast-item').forEach(el =>
+    el.classList.toggle('sel', el.dataset.id === id));
 }
-
 function toggleCondition(id) {
   if (id === 'none') {
     S.conditions = [];
@@ -1158,9 +1254,9 @@ function toggleCondition(id) {
   const idx = S.conditions.indexOf(id);
   if (idx === -1) S.conditions.push(id);
   else S.conditions.splice(idx, 1);
-  document.querySelector(`[data-cid="${id}"]`).classList.toggle('sel', S.conditions.includes(id));
+  document.querySelector(`[data-cid="${id}"]`)
+    .classList.toggle('sel', S.conditions.includes(id));
 }
-
 function setFatPct(val) {
   S.fat = val;
   document.querySelectorAll('.fat-btn').forEach(b => b.classList.remove('sel'));
@@ -1172,66 +1268,53 @@ function setFatPct(val) {
     document.getElementById('inp-fat').value = '';
   }
 }
-
 function syncFatInput(v) {
   S.fat = v ? parseFloat(v) : null;
   document.querySelectorAll('.fat-btn').forEach(b => b.classList.remove('sel'));
 }
 
-/* ══════════════════════════════════════════════════════
-   ✅ META CORPORAL S3 — setBodyGoal CORREGIDO (sin duplicado)
-══════════════════════════════════════════════════════ */
+/* ── META CORPORAL S3 ── */
 function setBodyGoal(val) {
   S.bodyGoal = val;
-  S.goal = val;
-
-  const h = S.height || 170;
-  const baseWeight = h - 100;
-  let idealWeight;
-
+  S.goal     = val;
+  const h    = S.height || 170;
+  const base = h - 100;
+  let ideal;
   if (val === 'lose') {
-    idealWeight = baseWeight - 3;
-    if (S.weight && idealWeight > S.weight) idealWeight = S.weight;
+    ideal = base - 3;
+    if (S.weight && ideal > S.weight) ideal = S.weight;
   } else if (val === 'build') {
-    idealWeight = baseWeight + 3;
-    if (S.weight && idealWeight < S.weight) idealWeight = S.weight;
+    ideal = base + 3;
+    if (S.weight && ideal < S.weight) ideal = S.weight;
   } else {
-    idealWeight = S.weight || baseWeight;
+    ideal = S.weight || base;
   }
-
-  idealWeight = Math.round(idealWeight * 10) / 10;
-  S.ideal = idealWeight;
-
+  ideal   = Math.round(ideal * 10) / 10;
+  S.ideal = ideal;
   const disp = document.getElementById('wi-val');
   const inp  = document.getElementById('inp-ideal');
-  if (disp) disp.textContent = idealWeight + ' kg';
-  if (inp)  inp.value = idealWeight;
-
+  if (disp) disp.textContent = ideal + ' kg';
+  if (inp)  inp.value        = ideal;
   updateGoalSubtitles();
   updateIdealDiff();
-
   document.querySelectorAll('[data-bg]').forEach(el => el.classList.remove('sel'));
-  const sel = document.querySelector(`[data-bg="${val}"]`);
-  if (sel) sel.classList.add('sel');
+  document.querySelector(`[data-bg="${val}"]`)?.classList.add('sel');
 }
 
 function updateGoalSubtitles() {
-  const h    = S.height || 170;
-  const base = h - 100;
+  const h     = S.height || 170;
+  const base  = h - 100;
   const lose  = Math.round((base - 3) * 10) / 10;
   const build = Math.round((base + 3) * 10) / 10;
   const curr  = S.weight || base;
-  const elLose  = document.getElementById('desc-lose');
-  const elKeep  = document.getElementById('desc-maintain');
-  const elBuild = document.getElementById('desc-build');
-  if (elLose)  elLose.textContent  = `Meta: ${lose} kg · Déficit suave · Preservar músculo`;
-  if (elKeep)  elKeep.textContent  = `Tu peso: ${curr} kg · Composición óptima · Sin déficit ni superávit`;
-  if (elBuild) elBuild.textContent = `Meta: ${build} kg · Superávit mínimo · Proteína alta · Estímulo + descanso`;
+  const elL = document.getElementById('desc-lose');
+  const elM = document.getElementById('desc-maintain');
+  const elB = document.getElementById('desc-build');
+  if (elL) elL.textContent = `Meta: ${lose} kg · Déficit suave · Preservar músculo`;
+  if (elM) elM.textContent = `Tu peso: ${curr} kg · Composición óptima · Sin déficit ni superávit`;
+  if (elB) elB.textContent = `Meta: ${build} kg · Superávit mínimo · Proteína alta · Estímulo + descanso`;
 }
 
-/* ══════════════════════════════════════════════════════
-   PESO IDEAL — calcIdealWeight (al entrar a S3)
-══════════════════════════════════════════════════════ */
 function calcIdealWeight() {
   if (!S.height) return;
   const h = S.height / 100;
@@ -1242,12 +1325,9 @@ function calcIdealWeight() {
     ideal = S.weight ? S.weight : Math.round(22 * h * h * 10) / 10;
   } else {
     const imcActual = S.weight ? S.weight / (h * h) : 0;
-    if (imcActual > 0 && imcActual < 21) {
-      const base = Math.round(22 * h * h * 10) / 10;
-      ideal = Math.round((base + 4) * 10) / 10;
-    } else {
-      ideal = Math.round(24 * h * h * 10) / 10;
-    }
+    ideal = (imcActual > 0 && imcActual < 21)
+      ? Math.round((22 * h * h + 4) * 10) / 10
+      : Math.round(24 * h * h * 10) / 10;
   }
   S.ideal = ideal;
   const el  = document.getElementById('wi-val');
@@ -1275,15 +1355,15 @@ function updateIdealDiff() {
   if (Math.abs(diff) < 1) {
     el.textContent = '✅ Estás en tu peso ideal'; el.style.color = '#1a9e8f';
   } else if (diff > 0) {
-    el.textContent = `📉 Te faltan ${diff.toFixed(1)} kg para llegar a tu peso ideal`; el.style.color = '#f0a500';
+    el.textContent = `📉 Te faltan ${diff.toFixed(1)} kg para llegar a tu peso ideal`;
+    el.style.color = '#f0a500';
   } else {
-    el.textContent = `📈 Estás ${Math.abs(diff).toFixed(1)} kg por debajo de tu peso ideal`; el.style.color = '#00c6ff';
+    el.textContent = `📈 Estás ${Math.abs(diff).toFixed(1)} kg por debajo de tu peso ideal`;
+    el.style.color = '#00c6ff';
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   BUILDERS HTML
-══════════════════════════════════════════════════════ */
+/* ── BUILDERS HTML ── */
 function buildPrinciples() {
   const wrap = document.getElementById('principles-wrap');
   if (!wrap) return;
@@ -1305,7 +1385,7 @@ function buildPrinciples() {
 }
 
 function toggleGroup(i) {
-  const body  = document.getElementById('pg-body-' + i);
+  const body  = document.getElementById('pg-body-'  + i);
   const arrow = document.getElementById('pg-arrow-' + i);
   if (!body) return;
   body.classList.toggle('open');
@@ -1316,7 +1396,8 @@ function buildActivities() {
   const wrap = document.getElementById('act-list');
   if (!wrap) return;
   wrap.innerHTML = ACTIVITIES.map(a => `
-    <div class="act-item${a.id===S.activity?' sel':''}" data-id="${a.id}" onclick="setActivity('${a.id}')">
+    <div class="act-item${a.id===S.activity?' sel':''}" data-id="${a.id}"
+         onclick="setActivity('${a.id}')">
       <span class="ai-ico">${a.ico}</span>
       <div class="ai-txt"><strong>${a.name}</strong><span>${a.desc}</span></div>
     </div>`).join('');
@@ -1326,7 +1407,8 @@ function buildGoals() {
   const wrap = document.getElementById('goal-list');
   if (!wrap) return;
   wrap.innerHTML = GOALS.map(g => `
-    <div class="act-item goal-item${g.id===S.goal?' sel':''}" data-id="${g.id}" onclick="setGoal('${g.id}')">
+    <div class="act-item goal-item${g.id===S.goal?' sel':''}" data-id="${g.id}"
+         onclick="setGoal('${g.id}')">
       <span class="ai-ico">${g.ico}</span>
       <div class="ai-txt"><strong>${g.name}</strong><span>${g.desc}</span></div>
     </div>`).join('');
@@ -1336,7 +1418,8 @@ function buildConditions() {
   const wrap = document.getElementById('cond-list');
   if (!wrap) return;
   wrap.innerHTML = CONDITIONS.map(c => `
-    <div class="cp${c.id==='none'?' sel':''}" data-cid="${c.id}" onclick="toggleCondition('${c.id}')">
+    <div class="cp${c.id==='none'?' sel':''}" data-cid="${c.id}"
+         onclick="toggleCondition('${c.id}')">
       <span class="cp-ico">${c.ico}</span>
       <div class="cp-txt"><strong>${c.name}</strong><span>${c.desc}</span></div>
       <div class="cp-check">✓</div>
@@ -1347,565 +1430,659 @@ function buildFasts() {
   const wrap = document.getElementById('fast-list');
   if (!wrap) return;
   wrap.innerHTML = FASTS.map(f => `
-    <div class="fast-item${f.id===S.fast?' sel':''}" data-id="${f.id}" onclick="setFast('${f.id}')">
-      <div class="fi-top"><span class="fi-ico">${f.ico}</span><span class="fi-name">${f.name}</span></div>
+    <div class="fast-item${f.id===S.fast?' sel':''}" data-id="${f.id}"
+         onclick="setFast('${f.id}')">
+      <div class="fi-top">
+        <span class="fi-ico">${f.ico}</span>
+        <span class="fi-name">${f.name}</span>
+      </div>
       <div class="fi-desc">${f.desc}</div>
-      <div class="fi-bar"><div class="fi-fill" style="width:${(f.eating/24*100)}%"></div></div>
+      <div class="fi-bar">
+        <div class="fi-fill" style="width:${(f.eating/24*100)}%"></div>
+      </div>
     </div>`).join('');
 }
 
 function buildSummary() {
-  const actObj  = ACTIVITIES.find(a => a.id===S.activity) || ACTIVITIES[2];
-  const goalObj = GOALS.find(g => g.id===S.goal) || GOALS[2];
-  const fastObj = FASTS.find(f => f.id===S.fast) || FASTS[1];
+  const actObj  = ACTIVITIES.find(a => a.id === S.activity) || ACTIVITIES[2];
+  const goalObj = GOALS.find(g => g.id === S.goal)          || GOALS[2];
+  const fastObj = FASTS.find(f => f.id === S.fast)          || FASTS[1];
   const conds   = S.conditions.length
-    ? S.conditions.map(c => CONDITIONS.find(x=>x.id===c)?.name).join(', ')
+    ? S.conditions.map(c => CONDITIONS.find(x => x.id === c)?.name).join(', ')
     : 'Sin condiciones especiales';
   const wrap = document.getElementById('summary-wrap');
   if (!wrap) return;
   wrap.innerHTML = `
-    <div class="sum-row"><span class="sr-l">👤 Nombre</span><span class="sr-r">${S.name}</span></div>
-    <div class="sum-row"><span class="sr-l">⚧ Sexo</span><span class="sr-r">${S.sex==='m'?'Hombre':'Mujer'}</span></div>
-    <div class="sum-row"><span class="sr-l">🎂 Edad</span><span class="sr-r">${S.age} años</span></div>
-    <div class="sum-row"><span class="sr-l">⚖️ Peso actual</span><span class="sr-r">${S.weight} kg</span></div>
-    <div class="sum-row"><span class="sr-l">📏 Estatura</span><span class="sr-r">${S.height} cm</span></div>
-    <div class="sum-row"><span class="sr-l">🎯 Peso ideal</span><span class="sr-r">${S.ideal} kg</span></div>
-    <div class="sum-row"><span class="sr-l">🏃 Actividad</span><span class="sr-r">${actObj.name}</span></div>
-    <div class="sum-row"><span class="sr-l">🎯 Objetivo</span><span class="sr-r">${goalObj.name}</span></div>
-    <div class="sum-row"><span class="sr-l">⏱️ Ayuno</span><span class="sr-r">${fastObj.name}</span></div>
+    <div class="sum-row"><span class="sr-l">👤 Nombre</span>
+      <span class="sr-r">${S.name}</span></div>
+    <div class="sum-row"><span class="sr-l">⚧ Sexo</span>
+      <span class="sr-r">${S.sex==='m'?'Hombre':'Mujer'}</span></div>
+    <div class="sum-row"><span class="sr-l">🎂 Edad</span>
+      <span class="sr-r">${S.age} años</span></div>
+    <div class="sum-row"><span class="sr-l">⚖️ Peso actual</span>
+      <span class="sr-r">${S.weight} kg</span></div>
+    <div class="sum-row"><span class="sr-l">📏 Estatura</span>
+      <span class="sr-r">${S.height} cm</span></div>
+    <div class="sum-row"><span class="sr-l">🎯 Peso ideal</span>
+      <span class="sr-r">${S.ideal} kg</span></div>
+    <div class="sum-row"><span class="sr-l">🏃 Actividad</span>
+      <span class="sr-r">${actObj.name}</span></div>
+    <div class="sum-row"><span class="sr-l">🎯 Objetivo</span>
+      <span class="sr-r">${goalObj.name}</span></div>
+    <div class="sum-row"><span class="sr-l">⏱️ Ayuno</span>
+      <span class="sr-r">${fastObj.name}</span></div>
     <div class="sum-row"><span class="sr-l">🩺 Condiciones</span>
-      <span class="sr-r" style="font-size:11px;text-align:right;max-width:55%">${conds}</span></div>`;
+      <span class="sr-r" style="font-size:11px;text-align:right;max-width:55%">
+        ${conds}</span></div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   SWIPE
-══════════════════════════════════════════════════════ */
+/* ── SWIPE + TABS + RESET ── */
 function initSwipe() {
-  let startX=0, startY=0, moved=false;
+  let startX = 0, startY = 0, moved = false;
   const track = document.getElementById('track');
   track.addEventListener('touchstart', e => {
-    startX=e.touches[0].clientX; startY=e.touches[0].clientY; moved=false;
-  },{passive:true});
-  track.addEventListener('touchmove', ()=>{ moved=true; },{passive:true});
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    moved  = false;
+  }, {passive:true});
+  track.addEventListener('touchmove', () => { moved = true; }, {passive:true});
   track.addEventListener('touchend', e => {
     if (!moved) return;
     const dx = e.changedTouches[0].clientX - startX;
     const dy = Math.abs(e.changedTouches[0].clientY - startY);
-    if (Math.abs(dx) > 50 && dy < 80) { if (dx < 0) goNext(); else goBack(); }
-  },{passive:true});
+    if (Math.abs(dx) > 50 && dy < 80) {
+      if (dx < 0) goNext(); else goBack();
+    }
+  }, {passive:true});
 }
 
 function switchMealTab(idx) {
-  document.querySelectorAll('.meal-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
-  document.querySelectorAll('.meal-tab-content').forEach((c,i) => c.classList.toggle('active', i===idx));
+  document.querySelectorAll('.meal-tab').forEach((t, i) =>
+    t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.meal-tab-content').forEach((c, i) =>
+    c.classList.toggle('active', i === idx));
 }
 
 function resetApp() {
-  S = { name:'',sex:'m',age:0,weight:0,height:0,fat:null,ideal:0,bodyGoal:'maintain',
-    activity:'moderate',goal:'maintain',conditions:[],fast:'16/8',
-    kcal:0,prot:0,fat_g:0,carb:0,water:0,tmb:0,tdee:0 };
-  DS = {prot:0,fiber:0,water:0,carb:0,meals:{desayuno:null,almuerzo:null,cena:null}};
+  S = {
+    name:'', sex:'m', age:0, weight:0, height:0, fat:null,
+    ideal:0, bodyGoal:'maintain', activity:'moderate', goal:'maintain',
+    conditions:[], fast:'16/8',
+    kcal:0, prot:0, fat_g:0, carb:0, water:0, tmb:0, tdee:0
+  };
+  DS = { prot:0, fiber:0, water:0, carb:0,
+    meals:{ desayuno:null, almuerzo:null, cena:null } };
   goTo(0);
 }
 
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
-    document.getElementById('track').style.transform = `translateX(-${cur * 100}vw)`;
+    document.getElementById('track').style.transform =
+      `translateX(-${cur * 100}vw)`;
   }, 300);
 });
 </script>
 <script>
 /* ══════════════════════════════════════════════════════
-   SINERGIA v3.4 — Script Bloque 2
-   Helpers + Cálculo + Renders + IA OpenAI + Diario + Historial
+   SINERGIA v3.5 — Script Bloque 2
+   Helpers + Cálculo + Renders + IA (Groq) + Módulo Diario
 ══════════════════════════════════════════════════════ */
-// Rotación cada 14 días desde el 1 enero 2026
-function dayRotate(arr) {
-  const origin = new Date('2026-01-01');
-  const today  = new Date();
-  const diff   = Math.floor((today - origin) / 86400000);
-  return arr[diff % arr.length];
-}
 
 /* ── HELPERS ── */
 function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function fmtHour(h) {
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  const ampm = hh < 12 ? 'AM' : 'PM';
+  const hd   = hh % 12 || 12;
+  return `${hd}:${String(mm).padStart(2,'0')} ${ampm}`;
+}
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.opacity = '1';
   setTimeout(() => t.style.opacity = '0', 2500);
 }
-function renderResults() { renderHero(); renderDetail(); renderWater(); }
 
-/* ══════════════════════════════════════════════════════
-   CÁLCULO METABÓLICO — Mifflin-St Jeor + Sinergia
-══════════════════════════════════════════════════════ */
+/* ✅ dayRotate — ciclo 14 días desde 2026-01-01 (UNA sola definición) */
+function dayRotate(arr) {
+  if (!arr || !arr.length) return arr[0];
+  const base = new Date('2026-01-01');
+  const now  = new Date();
+  const diff = Math.floor((now - base) / (1000 * 60 * 60 * 24));
+  return arr[diff % arr.length];
+}
+
+/* ── CÁLCULO METABÓLICO ── */
 function calcPlan() {
   const actObj  = ACTIVITIES.find(a => a.id === S.activity) || ACTIVITIES[2];
-  const goalObj = GOALS.find(g => g.id === S.goal) || GOALS[2];
-  let tmb = S.sex === 'm'
-    ? 10*S.weight + 6.25*S.height - 5*S.age + 5
-    : 10*S.weight + 6.25*S.height - 5*S.age - 161;
-  let tdee = tmb * actObj.factor;
-  let kcal = Math.round(tdee * (1 + goalObj.adj));
-  let prot = Math.round(S.ideal * actObj.prot_factor);
-  if (S.conditions.includes('sibo') || S.conditions.includes('colitis'))
-    prot = Math.round(S.ideal * 1.3);
-  if (S.conditions.includes('diabetes') || S.conditions.includes('sop'))
-    prot = Math.round(S.ideal * 1.4);
-  const prot_kcal = prot * 4;
-  const remaining = kcal - prot_kcal;
-  const fat_kcal  = remaining * (goalObj.fat_pct / (goalObj.fat_pct + goalObj.carb_pct));
-  const carb_kcal = remaining * (goalObj.carb_pct / (goalObj.fat_pct + goalObj.carb_pct));
-  S.tmb   = Math.round(tmb);
-  S.tdee  = Math.round(tdee);
-  S.kcal  = kcal;
-  S.prot  = prot;
-  S.fat_g = Math.round(fat_kcal / 9);
-  S.carb  = Math.round(carb_kcal / 4);
-  S.water = parseFloat((S.weight * 0.035).toFixed(1));
+  const goalObj = GOALS.find(g => g.id === S.goal)          || GOALS[2];
+
+  /* TMB Mifflin-St Jeor */
+  let tmb;
+  if (S.sex === 'm') tmb = 10 * S.weight + 6.25 * S.height - 5 * S.age + 5;
+  else               tmb = 10 * S.weight + 6.25 * S.height - 5 * S.age - 161;
+
+  const tdee = tmb * actObj.factor;
+  let   kcal = Math.round(tdee * (1 + goalObj.adj));
+
+  /* Condiciones médicas ajustan carbos */
+  let carbPct = goalObj.carb_pct;
+  let fatPct  = goalObj.fat_pct;
+  let protPct = goalObj.prot_pct;
+  if (S.conditions.includes('diabetes') || S.conditions.includes('sop')) {
+    carbPct = 10; fatPct = 50; protPct = 40;
+  }
+  if (S.conditions.includes('sibo') || S.conditions.includes('colitis')) {
+    carbPct = 15; fatPct = 40; protPct = 45;
+  }
+
+  /* Proteína por peso ideal */
+  const idealKg = S.ideal || S.weight;
+  const prot    = Math.round(idealKg * actObj.prot_factor);
+  const fat_g   = Math.round((kcal * fatPct  / 100) / 9);
+  const carb    = Math.round((kcal * carbPct / 100) / 4);
+
+  /* Agua */
+  const water = Math.round((S.weight * 0.033) * 10) / 10;
+
+  S.kcal = kcal; S.prot = prot; S.fat_g = fat_g;
+  S.carb = carb; S.water = water; S.tmb = Math.round(tmb); S.tdee = Math.round(tdee);
+
+  /* Guardar en localStorage */
   localStorage.setItem('sinergia_plan', JSON.stringify(S));
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER HERO (S9)
-══════════════════════════════════════════════════════ */
+function renderResults() {
+  renderHero();
+  renderDetail();
+  renderWater();
+}
+
+/* ── RENDER HERO ── */
 function renderHero() {
-  const goalObj = GOALS.find(g => g.id === S.goal) || GOALS[2];
   const wrap = document.getElementById('hero-wrap');
   if (!wrap) return;
   wrap.innerHTML = `
-    <div class="rh">
-      <div class="rh-kcal">${S.kcal}</div>
-      <div class="rh-label">kcal · referencia diaria</div>
-      <div class="rh-ref">⚠️ Las calorías son una referencia, no una meta obsesiva</div>
-      <div class="rh-phil">
-        "Tu cuerpo no es una calculadora — es un sistema hormonal. La insulina, la leptina y el cortisol
-        deciden si almacenas o quemas grasa, no las calorías." — Jaramillo · Fung
+    <div class="hero-ring">
+      <svg viewBox="0 0 120 120" style="width:160px;height:160px">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="10"/>
+        <circle cx="60" cy="60" r="54" fill="none" stroke="#1a9e8f" stroke-width="10"
+          stroke-dasharray="${2*Math.PI*54}" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 60 60)"/>
+        <text x="60" y="55" text-anchor="middle" fill="#fff" font-size="22" font-weight="900">${S.kcal}</text>
+        <text x="60" y="72" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10">kcal/día</text>
+      </svg>
+    </div>
+    <div class="macro-row">
+      <div class="macro-pill" style="background:rgba(0,198,255,.15);border-color:#00c6ff">
+        <span class="mp-val" style="color:#00c6ff">${S.prot}g</span>
+        <span class="mp-lbl">Proteína</span>
       </div>
-      <div class="mg">
-        <div class="mc"><div class="mv" style="color:#1a9e8f">${S.prot}g</div><div class="ml">Proteína</div></div>
-        <div class="mc"><div class="mv" style="color:#f0a500">${S.fat_g}g</div><div class="ml">Grasa</div></div>
-        <div class="mc"><div class="mv" style="color:#e05a9a">${S.carb}g</div><div class="ml">Carbos</div></div>
+      <div class="macro-pill" style="background:rgba(240,165,0,.15);border-color:#f0a500">
+        <span class="mp-val" style="color:#f0a500">${S.fat_g}g</span>
+        <span class="mp-lbl">Grasa</span>
+      </div>
+      <div class="macro-pill" style="background:rgba(46,204,113,.15);border-color:#2ecc71">
+        <span class="mp-val" style="color:#2ecc71">${S.carb}g</span>
+        <span class="mp-lbl">Carbos</span>
       </div>
     </div>
-    <div class="card-teal" style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.7">
-      🎯 <strong>Objetivo:</strong> ${goalObj.name}<br>
-      🔥 <strong>TMB:</strong> ${S.tmb} kcal · <strong>TDEE:</strong> ${S.tdee} kcal<br>
-      📐 <strong>Distribución:</strong> ${goalObj.prot_pct}% prot · ${goalObj.fat_pct}% grasa · ${goalObj.carb_pct}% carbos
+    <div class="card" style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.7;margin-top:8px">
+      🧬 <strong style="color:#00c6ff">Filosofía Sinergia:</strong> Tu proteína se calcula
+      sobre tu <strong>peso ideal (${S.ideal} kg)</strong>, no el actual.
+      Así protegemos el músculo y optimizamos las hormonas. — Jaramillo
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER DETAIL — IMC + Equivalencias (S9)
-══════════════════════════════════════════════════════ */
+/* ── RENDER DETAIL (IMC + Equivalencias) ── */
 function renderDetail() {
-  const imc    = (S.weight / Math.pow(S.height/100, 2)).toFixed(1);
-  const imcCat = imc < 18.5 ? '🔵 Bajo peso' : imc < 25 ? '🟢 Normal' : imc < 30 ? '🟡 Sobrepeso' : '🔴 Obesidad';
-  const protPorComida = S.prot / 3;
-  const numHuevos = protPorComida < 20 ? 2 : protPorComida < 28 ? 3 : 4;
-  const gPollo    = Math.round(protPorComida / 0.31);
-  const gSalmon   = Math.round(protPorComida / 0.22);
   const wrap = document.getElementById('detail-wrap');
   if (!wrap) return;
+  const imc    = S.weight / ((S.height/100) ** 2);
+  const imcLbl = imc < 18.5 ? 'Bajo peso' : imc < 25 ? 'Normal ✅' : imc < 30 ? 'Sobrepeso' : 'Obesidad';
+
+  /* Equivalencias realistas por comida */
+  const protComida = Math.round(S.prot / 3);
+  const huevos     = protComida < 20 ? 2 : protComida < 28 ? 3 : 4;
+  const gPollo     = Math.round(protComida / 0.31);
+  const gSalmon    = Math.round(protComida / 0.22);
+
+  /* ✅ v3.5 — dayRotate para rotación de proteínas en detail */
+  const planD = MEAL_PLANS.desayuno;
+  const planA = MEAL_PLANS.almuerzo;
+  const planC = MEAL_PLANS.cena;
+  const mainD = dayRotate(planD.mains);
+  const mainA = dayRotate(planA.mains);
+  const mainC = dayRotate(planC.mains);
+
   wrap.innerHTML = `
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:12px">📊 Tu IMC y Composición</div>
-      <div class="sum-row"><span class="sr-l">IMC actual</span><span class="sr-r">${imc} · ${imcCat}</span></div>
-      <div class="sum-row"><span class="sr-l">Peso ideal</span><span class="sr-r">${S.ideal} kg</span></div>
-      <div class="sum-row"><span class="sr-l">Proteína/comida</span><span class="sr-r">${Math.round(protPorComida)}g · ~palma de mano</span></div>
-    </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">🥩 Equivalencias de Proteína por Comida</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:12px">${Math.round(protPorComida)}g por comida · 3 comidas al día</div>
-      <div class="prot-equiv">
-        <div class="prot-eq-card">
-          <span class="prot-eq-ico">🥚</span>
-          <div class="prot-eq-meal">Desayuno</div>
-          <span class="prot-eq-val">${numHuevos} huevos</span>
-          <div class="prot-eq-desc">+ 1 rodaja queso campesino</div>
+    <div class="card" style="margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:13px;color:rgba(255,255,255,.7)">IMC actual</span>
+        <span style="font-size:16px;font-weight:800;color:#00c6ff">${imc.toFixed(1)} — ${imcLbl}</span>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px">
+        TMB: ${S.tmb} kcal · TDEE: ${S.tdee} kcal · Peso ideal: ${S.ideal} kg
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px">
+        🥩 Tu proteína por comida (~${protComida}g c/u)
+      </div>
+      <div class="prot-equiv-row">
+        <div class="pe-item">
+          <span class="pe-ico">🌅</span>
+          <div class="pe-txt">
+            <strong>Desayuno</strong>
+            <span>${huevos} huevos + queso cottage</span>
+            <span style="font-size:10px;opacity:.6">${mainD.ico} ${mainD.name}</span>
+          </div>
         </div>
-        <div class="prot-eq-card">
-          <span class="prot-eq-ico">🍗</span>
-          <div class="prot-eq-meal">Almuerzo</div>
-          <span class="prot-eq-val">${gPollo}g</span>
-          <div class="prot-eq-desc">pechuga de pollo</div>
+        <div class="pe-item">
+          <span class="pe-ico">☀️</span>
+          <div class="pe-txt">
+            <strong>Almuerzo</strong>
+            <span>${gPollo}g pechuga pollo</span>
+            <span style="font-size:10px;opacity:.6">${mainA.ico} ${mainA.name}</span>
+          </div>
         </div>
-        <div class="prot-eq-card">
-          <span class="prot-eq-ico">🐟</span>
-          <div class="prot-eq-meal">Cena</div>
-          <span class="prot-eq-val">${gSalmon}g</span>
-          <div class="prot-eq-desc">salmón o trucha</div>
+        <div class="pe-item">
+          <span class="pe-ico">🌙</span>
+          <div class="pe-txt">
+            <strong>Cena</strong>
+            <span>${gSalmon}g salmón / trucha</span>
+            <span style="font-size:10px;opacity:.6">${mainC.ico} ${mainC.name}</span>
+          </div>
         </div>
       </div>
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER WATER (S9)
-══════════════════════════════════════════════════════ */
+/* ── RENDER WATER ── */
 function renderWater() {
-  const vasos = Math.round(S.water / 0.25);
   const wrap = document.getElementById('water-wrap');
   if (!wrap) return;
+  const vasos = Math.round(S.water / 0.25);
   wrap.innerHTML = `
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:10px">💧 Hidratación Diaria</div>
-      <div style="text-align:center;margin-bottom:10px">
-        <span style="font-size:36px;font-weight:900;color:#00c6ff">${S.water}L</span>
-        <span style="font-size:13px;color:rgba(255,255,255,.6);margin-left:8px">· ${vasos} vasos de 250ml</span>
+    <div class="card" style="margin-top:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:32px">💧</span>
+        <div>
+          <div style="font-size:22px;font-weight:900;color:#00c6ff">${S.water} L / día</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.6)">${vasos} vasos de 250ml</div>
+        </div>
       </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.6;text-align:center">
-        💡 Bebe 1 vaso antes de cada comida · Reduce el apetito y mejora la digestión
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.6">
+        💡 Bebe 1 vaso al levantarte · 1 antes de cada comida · El resto distribuido en el día.
+        <strong style="color:#00c6ff">Agua 20 min después de comer</strong> para no diluir enzimas digestivas.
       </div>
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER MEALS — S10 con tabs
-══════════════════════════════════════════════════════ */
+/* ── RENDER MEALS ── */
 function renderMeals() {
-  const msgs = {
-    '14/10':'🌙 Tu ventana: 9 AM – 7 PM · Catorce horas de reparación celular',
-    '16/8' :'🌙 Tu ventana: 11 AM – 7 PM · Dos comidas que mantienen tu insulina perfecta',
-    '18/6' :'⭐ Tu ventana: 12 PM – 6 PM · Máxima autofagia y quema de grasa',
-    'omad' :'⚡ Una comida al día · Solo para personas muy adaptadas',
-  };
-  const el = document.getElementById('s10-window-msg');
-  if (el) el.textContent = msgs[S.fast] || msgs['16/8'];
-  renderOneMeal('desayuno','meal-desayuno');
-  renderOneMeal('almuerzo','meal-almuerzo');
-  renderOneMeal('cena',    'meal-cena');
+  const fast = S.fast || '16/8';
+  const now  = new Date();
+  const h    = now.getHours() + now.getMinutes() / 60;
+
+  /* Ventana horaria según ayuno */
+  let winMsg = '';
+  if (fast === '14/10') winMsg = '⏰ Ventana: 8:00 AM – 6:00 PM';
+  else if (fast === '16/8') winMsg = '⏰ Ventana: 10:00 AM – 6:00 PM';
+  else if (fast === '18/6') winMsg = '⏰ Ventana: 12:00 PM – 6:00 PM';
+  else if (fast === 'omad') winMsg = '⏰ OMAD: Una comida al día · 12:00 PM – 1:00 PM';
+  const wm = document.getElementById('s10-window-msg');
+  if (wm) wm.textContent = winMsg;
+
+  renderOneMeal('desayuno', 'meal-desayuno');
+  renderOneMeal('almuerzo', 'meal-almuerzo');
+  renderOneMeal('cena',     'meal-cena');
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER ONE MEAL
-══════════════════════════════════════════════════════ */
+/* ── RENDER ONE MEAL — v3.5 con drinks + fruits ── */
 function renderOneMeal(mealKey, containerId) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+
   const plan      = MEAL_PLANS[mealKey];
-// Rotación diaria de proteína, grasa y acompañantes
-const mainProt  = dayRotate(plan.mains   || [plan.main]);
-const mainFat   = dayRotate(plan.fats    || []);
-const mainCarb = mealKey === 'almuerzo' ? dayRotate(plan.carbSets) : null;
-const companions = dayRotate(plan.companionSets || [plan.companions]);
+  const protComida = Math.round(S.prot / 3);
+  const kcalComida = Math.round(S.kcal / 3);
+  const fatComida  = Math.round(S.fat_g / 3);
+  const carbComida = Math.round(S.carb / 3);
 
-  const container = document.getElementById(containerId);
-  if (!plan || !container) return;
-  const protPorComida = Math.round(S.prot / 3);
-  const kcalComida    = Math.round(S.kcal / 3);
-  const fatComida     = Math.round(S.fat_g / 3);
-  const carbComida    = Math.round(S.carb / 3);
-  let mainQtyText = '';
-  if (mealKey === 'desayuno') {
-    const n = protPorComida < 20 ? 2 : protPorComida < 28 ? 3 : 4;
-    mainQtyText = `${n} huevos enteros`;
-  } else if (mealKey === 'almuerzo') {
-    mainQtyText = `${Math.round(protPorComida / 0.31)}g`;
-  } else {
-    mainQtyText = `${Math.round(protPorComida / 0.22)}g`;
-  }
-  let avoidHtml = '';
-  if (S.conditions.length) {
-    const avoidSet = new Set();
-    S.conditions.forEach(cid => {
-      const c = CONDITIONS.find(x => x.id === cid);
-      if (c) c.avoid.forEach(a => avoidSet.add(a));
-    });
-    if (avoidSet.size) {
-      avoidHtml = `
-        <div style="background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2);
-          border-radius:10px;padding:10px 12px;margin-top:10px">
-          <div style="font-size:.72rem;font-weight:700;color:#e05252;margin-bottom:6px">⚠️ Evitar en esta comida</div>
-          <div style="font-size:.72rem;color:rgba(255,255,255,.65);line-height:1.8">${[...avoidSet].join(' · ')}</div>
-        </div>`;
-    }
-  }
-  const caldoHtml = plan.has_caldo ? `
-    <div class="extra-item extra-caldo">
-      <span class="extra-ico">🍲</span>
-      <div class="extra-info">
-        <div class="extra-name">Caldo de huesos</div>
-        <div class="extra-desc">Colágeno + minerales · Activa el intestino · Rompe el ayuno suave</div>
-      </div>
-      <span class="extra-qty">1 taza</span>
-    </div>` : '';
-  const psylliumHtml = plan.has_psyllium ? `
-    <div class="extra-item extra-psyllium">
-      <span class="extra-ico">🌾</span>
-      <div class="extra-info">
-        <div class="extra-name">Psyllium husk</div>
-        <div class="extra-desc">Fibra soluble · Microbiota nocturna · Prepara el ayuno</div>
-      </div>
-      <span class="extra-qty">1 cdita en agua</span>
-    </div>` : '';
+  /* Rotaciones dayRotate */
+  const main  = dayRotate(plan.mains);
+  const comps = dayRotate(plan.companionSets);
+  const fat   = dayRotate(plan.fats);
+  const drink = dayRotate(plan.drinks);   /* ✅ v3.5 */
+  const fruit = dayRotate(plan.fruits);   /* ✅ v3.5 */
+  const carb  = plan.carbSets ? dayRotate(plan.carbSets) : null;
+
+  /* Condiciones médicas */
+  const avoidItems = S.conditions.flatMap(cid =>
+    CONDITIONS.find(c => c.id === cid)?.avoid || []);
+  const avoidHtml = avoidItems.length
+    ? `<div class="avoid-block">
+        <div class="avoid-title">🚫 Evitar con tu condición</div>
+        <div class="avoid-list">${avoidItems.map(a => `<span class="avoid-tag">${a}</span>`).join('')}</div>
+       </div>` : '';
+
+  /* Acompañantes vegetales */
+  const compHtml = comps.map(c => `
+    <div class="comp-item">
+      <span class="ci-ico">${c.ico}</span>
+      <div class="ci-txt"><strong>${c.name}</strong><span>${c.desc} · ${c.qty}</span></div>
+    </div>`).join('');
+
+  /* Intercambios */
   const swapsHtml = plan.swaps.map((sw, i) => `
-    <div class="swap-opt-v2" id="swap-${mealKey}-${i}" onclick="selectSwap('${mealKey}',${i})">
-      <span class="swap-opt-ico">${sw.ico}</span>
-      <span class="swap-opt-name">${sw.name}</span>
-      <span class="swap-opt-g">${sw.g}g · ${sw.prot}g prot</span>
+    <div class="swap-opt" id="swap-${mealKey}-${i}" onclick="selectSwap('${mealKey}',${i})">
+      <span>${sw.ico}</span>
+      <div><strong>${sw.name}</strong><span>${sw.g}g = ${sw.prot}g prot</span></div>
     </div>`).join('');
-  const compHtml =companions.map(c => `
-    <div class="companion-item">
-      <span class="companion-ico">${c.ico}</span>
-      <div class="companion-info">
-        <div class="companion-name">${c.name}</div>
-        <div class="companion-desc">${c.desc}</div>
+
+  /* Caldo (solo desayuno) */
+  const caldoHtml = plan.has_caldo ? `
+    <div class="extra-block" style="border-color:#8B4513;background:rgba(139,69,19,.12)">
+      <span class="eb-ico">🍲</span>
+      <div class="eb-txt">
+        <strong>Caldo de huesos</strong>
+        <span>1 taza tibia · Colágeno + minerales · Repara el intestino · Rompe el ayuno suave</span>
       </div>
-      <span class="companion-qty">${c.qty}</span>
-    </div>`).join('');
-  container.innerHTML = `
-    <div class="meal-macros-bar">
-      <div class="meal-macro-item kcal"><span class="meal-macro-val">${kcalComida}</span><span class="meal-macro-lbl">kcal</span></div>
-      <div class="meal-macro-item prot"><span class="meal-macro-val">${protPorComida}g</span><span class="meal-macro-lbl">prot</span></div>
-      <div class="meal-macro-item fat"><span class="meal-macro-val">${fatComida}g</span><span class="meal-macro-lbl">grasa</span></div>
-      <div class="meal-macro-item carb"><span class="meal-macro-val">${carbComida}g</span><span class="meal-macro-lbl">carbos</span></div>
+    </div>` : '';
+
+  /* Psyllium (solo cena) */
+  const psylliumHtml = plan.has_psyllium ? `
+    <div class="extra-block" style="border-color:#2ecc71;background:rgba(46,204,113,.1)">
+      <span class="eb-ico">🌾</span>
+      <div class="eb-txt">
+        <strong>Psyllium husk</strong>
+        <span>1 cdita en vaso de agua · Antes de dormir · Fibra soluble · Microbiota nocturna</span>
+      </div>
+    </div>` : '';
+
+  /* ✅ v3.5 — Bebida rotativa */
+  const drinkHtml = `
+    <div class="extra-block" style="border-color:#00c6ff;background:rgba(0,198,255,.08)">
+      <span class="eb-ico">${drink.ico}</span>
+      <div class="eb-txt">
+        <strong style="color:#00c6ff">${drink.name}</strong>
+        <span>${drink.desc}</span>
+        <span style="font-size:10px;opacity:.7;margin-top:2px;display:block">${drink.note}</span>
+      </div>
+    </div>`;
+
+  /* ✅ v3.5 — Fruta bajo IG rotativa */
+  const fruitHtml = `
+    <div class="extra-block" style="border-color:#2ecc71;background:rgba(46,204,113,.08)">
+      <span class="eb-ico">${fruit.ico}</span>
+      <div class="eb-txt">
+        <strong style="color:#2ecc71">${fruit.name}</strong>
+        <span>${fruit.qty} · ${fruit.desc}</span>
+        <span style="font-size:10px;opacity:.7;margin-top:2px;display:block">🍓 Fruta bajo IG · Opcional · Después de la comida</span>
+      </div>
+    </div>`;
+
+  /* Carbo (solo almuerzo) */
+  const carbHtml = (mealKey === 'almuerzo' && carb) ? `
+    <div class="extra-block" style="border-color:#e05a9a;background:rgba(224,90,154,.1)">
+      <span class="eb-ico">${carb.ico}</span>
+      <div class="eb-txt">
+        <strong style="color:#e05a9a">🌾 Carbo opcional · Solo día de entrenamiento</strong>
+        <span>${carb.name} · ${carb.qty} · ${carb.desc}</span>
+      </div>
+    </div>` : '';
+
+  wrap.innerHTML = `
+    <!-- Barra de macros -->
+    <div class="macro-bar-mini">
+      <span>🔥 ${kcalComida} kcal</span>
+      <span style="color:#00c6ff">🥩 ${protComida}g prot</span>
+      <span style="color:#f0a500">🥑 ${fatComida}g grasa</span>
+      <span style="color:#2ecc71">🌾 ${carbComida}g carbos</span>
     </div>
-    <div class="food-main">
-      <div class="food-main-label">🥩 PROTEÍNA PRINCIPAL</div>
-      <div class="food-main-header">
-        <span class="food-main-ico">${mainProt.ico}</span>
-        <div class="food-main-info">
-          <div class="food-main-name">${mainProt.name} · <span style="color:#00c6ff">${mainQtyText}</span></div>
-          <div class="food-main-sub">${mainProt.note}</div>
-<div class="food-main-cook">${mainProt.cook}</div>
+
+    <!-- Proteína principal -->
+    <div class="main-prot-block">
+      <div class="mpb-header">
+        <span class="mpb-ico">${main.ico}</span>
+        <div class="mpb-txt">
+          <strong>${main.name}</strong>
+          <span>${main.note}</span>
+          <span class="mpb-cook">👨‍🍳 ${main.cook}</span>
         </div>
       </div>
-      <div class="food-main-macro">
-        <span>${protPorComida}g proteína</span>
-        <span>${kcalComida} kcal</span>
-      </div>
-    </div>
-    <button class="swap-btn" onclick="toggleSwap('${mealKey}')">🔄 Ver intercambios 1:1 (misma proteína)</button>
-    <div class="swap-panel" id="swap-panel-${mealKey}">
-      <div class="swap-panel-title">Elige una alternativa — misma cantidad de proteína</div>
-      <div class="swap-grid-v2">${swapsHtml}</div>
-    </div>
-    <div class="companions-title">🥗 Acompañantes sugeridos</div>
-      ${compHtml}
-    <!-- GRASA SALUDABLE -->
-    <div class="companion-item" style="border-color:rgba(240,165,0,.2);background:rgba(240,165,0,.05)">
-      <span class="companion-ico">${mainFat.ico}</span>
-      <div class="companion-info">
-        <div class="companion-name" style="color:#f0a500">🥑 Grasa saludable</div>
-        <div class="companion-name">${mainFat.name}</div>
-        <div class="companion-desc">${mainFat.desc}</div>
-      </div>
-      <span class="companion-qty" style="color:#f0a500">${mainFat.qty}</span>
     </div>
 
-    ${mainCarb ? `
-    <div class="companion-item" style="border-color:rgba(224,90,154,.2);background:rgba(224,90,154,.05)">
-      <span class="companion-ico">${mainCarb.ico}</span>
-      <div class="companion-info">
-        <div class="companion-name" style="color:#e05a9a">🌾 Carbo opcional · Solo día de entrenamiento</div>
-        <div class="companion-name">${mainCarb.name}</div>
-        <div class="companion-desc">${mainCarb.desc}</div>
+    <!-- Intercambios -->
+    <button class="swap-toggle" onclick="toggleSwap('${mealKey}')">
+      🔄 Ver intercambios 1:1 ›
+    </button>
+    <div class="swap-panel" id="swaps-${mealKey}" style="display:none">
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">
+        Misma proteína · Intercambia sin afectar tus macros
       </div>
-      <span class="companion-qty" style="color:#e05a9a">${mainCarb.qty}</span>
-    </div>` : ''}
+      ${swapsHtml}
+    </div>
 
+    <!-- Acompañantes vegetales -->
+    <div class="comp-title">🥗 Acompañantes sugeridos</div>
+    ${compHtml}
+
+    <!-- Grasa saludable -->
+    <div class="extra-block" style="border-color:#f0a500;background:rgba(240,165,0,.1)">
+      <span class="eb-ico">${fat.ico}</span>
+      <div class="eb-txt">
+        <strong style="color:#f0a500">🥑 Grasa saludable</strong>
+        <span>${fat.name} · ${fat.qty} · ${fat.desc}</span>
+      </div>
+    </div>
+
+    <!-- Carbo opcional (solo almuerzo) -->
+    ${carbHtml}
+
+    <!-- Caldo (solo desayuno) -->
     ${caldoHtml}
+
+    <!-- Psyllium (solo cena) -->
     ${psylliumHtml}
+
+    <!-- ✅ v3.5 Bebida rotativa -->
+    ${drinkHtml}
+
+    <!-- ✅ v3.5 Fruta bajo IG -->
+    ${fruitHtml}
+
+    <!-- Evitar condiciones -->
     ${avoidHtml}
-    <div class="tab-ai-section">
-      <div class="tab-ai-title">📸 Analizar mi plato con IA</div>
-      <div class="photo-box-tab" onclick="document.getElementById('photo-input-${mealKey}').click()">
-        <div class="photo-box-placeholder" id="ph-placeholder-${mealKey}">
-          <span>📷</span><p>Toca para subir foto de tu plato</p>
-        </div>
-      </div>
-      <input type="file" id="photo-input-${mealKey}" accept="image/*" capture="environment"
-        style="display:none" onchange="previewMealPhoto('${mealKey}',this)">
-      <button class="ai-analyze-btn" id="ai-btn-${mealKey}"
-        onclick="analyzeMealPhoto('${mealKey}')" disabled>
-        🤖 Analizar con IA
+
+    <!-- IA Groq -->
+    <div class="ia-section">
+      <div class="ia-title">📸 Analiza tu plato con IA</div>
+      <input type="file" accept="image/*" capture="environment"
+        id="photo-${mealKey}" style="display:none"
+        onchange="previewMealPhoto('${mealKey}')">
+      <label for="photo-${mealKey}" class="ia-btn">📷 Subir foto de mi plato</label>
+      <img id="prev-${mealKey}" style="display:none;width:100%;border-radius:10px;margin-top:8px;object-fit:contain;max-height:200px">
+      <button class="ia-analyze-btn" id="analyze-btn-${mealKey}"
+        style="display:none" onclick="analyzeMealPhoto('${mealKey}')">
+        🤖 Analizar con IA Sinergia
       </button>
-      <div class="tab-ai-load" id="ai-load-${mealKey}">
-        <div class="ai-spinner"></div>
-        <p style="font-size:.75rem;color:rgba(255,255,255,.5)">Analizando tu plato...</p>
-      </div>
-      <div class="tab-ai-result" id="ai-result-${mealKey}">
-        <div class="tab-ai-result-title">🤖 Análisis IA</div>
-        <div class="tab-ai-result-text" id="ai-result-text-${mealKey}"></div>
-      </div>
+      <div id="ia-result-${mealKey}" class="ia-result"></div>
     </div>
-    <button class="tab-register-btn" id="reg-btn-${mealKey}"
-      onclick="registerMealFromTab('${mealKey}')">
-      ✅ Registrar ${plan.name}
+
+    <!-- Registrar comida -->
+    <button onclick="goTo(${mealKey==='desayuno'?14:mealKey==='almuerzo'?15:16})"
+      style="width:100%;padding:12px;background:linear-gradient(135deg,#1a9e8f,#127a6e);
+      border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;
+      cursor:pointer;margin-top:12px">
+      ✅ Registrar ${plan.ico} ${plan.name}
     </button>`;
 }
 
+/* ── INTERCAMBIOS ── */
 function toggleSwap(mealKey) {
-  document.getElementById('swap-panel-' + mealKey)?.classList.toggle('open');
+  const panel = document.getElementById('swaps-' + mealKey);
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 function selectSwap(mealKey, idx) {
-  const sw = MEAL_PLANS[mealKey].swaps[idx];
-  document.querySelectorAll(`[id^="swap-${mealKey}-"]`).forEach(el => el.classList.remove('selected'));
-  document.getElementById(`swap-${mealKey}-${idx}`)?.classList.add('selected');
-  showToast(`✅ ${sw.name} · ${sw.g}g · ${sw.prot}g proteína`);
+  const plan = MEAL_PLANS[mealKey];
+  const sw   = plan.swaps[idx];
+  document.querySelectorAll(`[id^="swap-${mealKey}-"]`).forEach(el =>
+    el.classList.remove('sel'));
+  document.getElementById(`swap-${mealKey}-${idx}`)?.classList.add('sel');
+  showToast(`✅ ${sw.name} seleccionado · ${sw.g}g = ${sw.prot}g proteína`);
 }
 
-/* ══════════════════════════════════════════════════════
-   RENDER TRACKERS (S11)
-══════════════════════════════════════════════════════ */
+/* ── RENDER TRACKERS ── */
 function renderTrackers() {
-  const trackers = [
-    {id:'prot', label:'🥩 Proteína', goal:S.prot,  unit:'g', color:'#1a9e8f', val:DS.prot,  steps:4},
-    {id:'fiber',label:'🌾 Fibra',    goal:30,       unit:'g', color:'#f0a500', val:DS.fiber, steps:3},
-    {id:'water',label:'💧 Agua',     goal:S.water,  unit:'L', color:'#00c6ff', val:DS.water, steps:Math.ceil(S.water/0.25)},
-    {id:'carb', label:'🍠 Carbos',   goal:S.carb,   unit:'g', color:'#e05a9a', val:DS.carb,  steps:3},
-  ];
   const wrap = document.getElementById('trackers-wrap');
   if (!wrap) return;
-  wrap.innerHTML = trackers.map(t => {
-    const pct = Math.min(100, Math.round((t.val / t.goal) * 100));
-    const btns = Array.from({length:t.steps}, (_,i) => `
-      <button onclick="markTracker('${t.id}',${(i+1)/t.steps})"
-        style="flex:1;padding:8px 4px;
-        background:${pct >= Math.round((i+1)/t.steps*100) ? t.color : 'rgba(255,255,255,.08)'};
-        border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;
-        font-size:11px;font-weight:700;cursor:pointer">
-        ${Math.round((i+1)/t.steps * t.goal)}${t.unit}
-      </button>`).join('');
+  const items = [
+    {key:'prot',  ico:'🥩', label:'Proteína',  goal:S.prot,   unit:'g',   color:'#00c6ff'},
+    {key:'fiber', ico:'🌾', label:'Fibra',      goal:30,       unit:'g',   color:'#2ecc71'},
+    {key:'water', ico:'💧', label:'Agua',       goal:S.water,  unit:'L',   color:'#00c6ff'},
+    {key:'carb',  ico:'🌽', label:'Carbos',     goal:S.carb,   unit:'g',   color:'#e05a9a'},
+  ];
+  wrap.innerHTML = items.map(it => {
+    const val = DS[it.key] || 0;
+    const pct = Math.min(100, Math.round((val / it.goal) * 100));
     return `
-      <div class="tkc">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:13px;font-weight:700;color:#fff">${t.label}</span>
-          <span style="font-size:12px;color:${t.color};font-weight:700">${t.val}/${t.goal}${t.unit} · ${pct}%</span>
+      <div class="tracker-card">
+        <div class="tc-top">
+          <span class="tc-ico">${it.ico}</span>
+          <div class="tc-info">
+            <strong>${it.label}</strong>
+            <span>${val} / ${it.goal} ${it.unit}</span>
+          </div>
+          <span class="tc-pct" style="color:${it.color}">${pct}%</span>
         </div>
-        <div class="tk-bar"><div class="tk-fill" style="width:${pct}%;background:${t.color}"></div></div>
-        <div style="display:flex;gap:6px;margin-top:8px">${btns}</div>
+        <div class="tc-bar">
+          <div class="tc-fill" style="width:${pct}%;background:${it.color}"></div>
+        </div>
+        <div class="tc-btns">
+          <button onclick="markTracker('${it.key}',${it.goal*0.25})">+25%</button>
+          <button onclick="markTracker('${it.key}',${it.goal*0.5})">+50%</button>
+          <button onclick="markTracker('${it.key}',${it.goal})">✅ Meta</button>
+          <button onclick="resetTracker('${it.key}')" style="color:rgba(255,100,100,.8)">↺</button>
+        </div>
       </div>`;
-  }).join('') + `
-    <button onclick="resetTracker()"
-      style="width:100%;padding:10px;background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.1);border-radius:10px;
-      color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px">
-      🔄 Reiniciar trackers del día
-    </button>`;
+  }).join('');
 }
-function markTracker(id, frac) {
-  const goals = {prot:S.prot, fiber:30, water:S.water, carb:S.carb};
-  DS[id] = Math.round(goals[id] * frac * 10) / 10;
-  renderTrackers(); showToast(`✅ ${id} actualizado`);
+function markTracker(key, val) {
+  DS[key] = Math.min((DS[key] || 0) + val, val * 4);
+  renderTrackers();
+  showToast(`✅ ${key} actualizado`);
 }
-function resetTracker() {
-  DS.prot=0; DS.fiber=0; DS.water=0; DS.carb=0;
-  renderTrackers(); showToast('🔄 Trackers reiniciados');
+function resetTracker(key) {
+  DS[key] = 0;
+  renderTrackers();
 }
 
-/* ══════════════════════════════════════════════════════
-   IA — OpenAI gpt-4o-mini (S10 tabs)
-   ✅ CORREGIDO: usa OPENAI_KEY global, base64 correcto
-══════════════════════════════════════════════════════ */
-function previewMealPhoto(mealKey, input) {
-  if (!input.files[0]) return;
+/* ── IA GROQ (vía /.netlify/functions/gemini) ── */
+function previewMealPhoto(mealKey) {
+  const file = document.getElementById('photo-' + mealKey)?.files[0];
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const idx = ['desayuno','almuerzo','cena'].indexOf(mealKey);
-    const box = document.querySelector(`#tab-content-${idx} .photo-box-tab`);
-    if (box) box.innerHTML = `<img src="${e.target.result}"
-      style="width:100%;height:100%;object-fit:contain;border-radius:12px">`;
-    const btn = document.getElementById('ai-btn-' + mealKey);
-    if (btn) btn.disabled = false;
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-
-async function analyzeMealPhoto(mealKey) {
-  const input     = document.getElementById('photo-input-' + mealKey);  // ✅ ID correcto
-  const resultDiv = document.getElementById('ai-result-text-' + mealKey); // ✅ ID correcto
-  const loadDiv   = document.getElementById('ai-load-' + mealKey);
-  const resultBox = document.getElementById('ai-result-' + mealKey);
-
-  if (!input || !input.files[0]) { showToast('📷 Primero sube una foto'); return; }
-
-  if (loadDiv) loadDiv.classList.add('show');
-  if (resultBox) resultBox.classList.remove('show');
-
-  const file = input.files[0];
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64   = e.target.result.split(',')[1];
-    const mimeType = file.type;
-   const prompt = `Eres el asistente nutricional de Sinergia En Movimiento (@sinergiamov), basado en el método hormonal del Dr. Carlos Jaramillo. Analiza esta foto de comida y responde en español con este formato exacto:
-
-🍽️ **Alimentos detectados:** [lista breve]
-
-🥩 **Proteína estimada:** [X–Xg aproximados] · [fuente: huevo/pollo/pescado/etc]
-
-⭐ **Puntaje Sinergia:** [X/10]
-
-[Si puntaje ≥ 8]: 🎉 ¡Excelente elección! Este plato está alineado con el método Sinergia. Tu insulina te lo agradece 💚
-[Si puntaje 5–7]: 👍 Buen plato con potencial. Pequeños ajustes y será perfecto.
-[Si puntaje < 5]: 💡 Podemos mejorar este plato juntos.
-
-✅ **Lo que está bien:** [1–2 puntos positivos concretos]
-⚠️ **Mejorar:** [1–2 sugerencias concretas estilo Sinergia]
-
-Sé motivacional, breve y directo. Máximo 8 líneas.`;
-
-    try {
-      const res = await fetch('/.netlify/functions/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
-      });
-      const data = await res.json();
-      const text = data?.text || 'Sin respuesta de la IA';
-      if (loadDiv)   loadDiv.classList.remove('show');
-      if (resultBox) resultBox.classList.add('show');
-      if (resultDiv) resultDiv.textContent = text;
-    } catch (err) {
-      if (loadDiv) loadDiv.classList.remove('show');
-      if (resultDiv) resultDiv.textContent = '❌ Error: ' + err.message;
-      if (resultBox) resultBox.classList.add('show');
-    }
+    const prev = document.getElementById('prev-' + mealKey);
+    const btn  = document.getElementById('analyze-btn-' + mealKey);
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
+    if (btn)  btn.style.display = 'block';
   };
   reader.readAsDataURL(file);
 }
 
+async function analyzeMealPhoto(mealKey) {
+  const btn    = document.getElementById('analyze-btn-' + mealKey);
+  const result = document.getElementById('ia-result-' + mealKey);
+  const prev   = document.getElementById('prev-' + mealKey);
+  if (!prev || !prev.src) { showToast('Primero sube una foto'); return; }
 
-/* ══════════════════════════════════════════════════════
-   COMPARTIR (S12)
-══════════════════════════════════════════════════════ */
+  btn.textContent = '⏳ Analizando...'; btn.disabled = true;
+  result.innerHTML = '<div style="color:rgba(255,255,255,.5);font-size:12px">Consultando IA Sinergia...</div>';
+
+  const base64 = prev.src.split(',')[1];
+  const plan   = MEAL_PLANS[mealKey];
+
+  try {
+    const resp = await fetch('/.netlify/functions/gemini', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        image: base64,
+        prompt: `Eres el nutricionista IA de Sinergia En Movimiento (método Jaramillo/Suárez/Fung).
+Analiza este plato de ${plan.name} y responde en español con:
+1. ✅ Qué está bien (proteína, grasa, vegetales)
+2. ⚠️ Qué mejorar (porciones, alimentos a evitar)
+3. 🥩 Proteína estimada (gramos)
+4. 📊 Índice glucémico general (bajo/medio/alto)
+5. 💡 1 consejo hormonal Sinergia
+Sé directo, motivador y breve (máx 150 palabras).`
+      })
+    });
+    const data = await resp.json();
+    const text = data.result || data.text || 'Sin respuesta de la IA';
+    result.innerHTML = `
+      <div class="ia-response">
+        <div style="font-size:11px;color:#1a9e8f;font-weight:700;margin-bottom:6px">
+          🤖 Análisis IA Sinergia
+        </div>
+        <div style="font-size:12px;line-height:1.7;color:rgba(255,255,255,.85)">
+          ${text.replace(/\n/g,'<br>')}
+        </div>
+      </div>`;
+  } catch(e) {
+    result.innerHTML = `<div style="color:rgba(255,100,100,.8);font-size:12px">
+      ❌ Error al analizar. Verifica tu conexión.</div>`;
+  }
+  btn.textContent = '🤖 Analizar de nuevo'; btn.disabled = false;
+}
+
+/* ── COMPARTIR ── */
 function shareWhatsApp() {
-  const actObj  = ACTIVITIES.find(a => a.id === S.activity);
-  const goalObj = GOALS.find(g => g.id === S.goal);
-  const fastObj = FASTS.find(f => f.id === S.fast);
-  const text =
-    `🌿 *MI PLAN METABÓLICO SINERGIA*\n\n` +
-    `👤 ${S.name} · ${S.sex==='m'?'Hombre':'Mujer'} · ${S.age} años\n` +
-    `⚖️ ${S.weight}kg actual · ${S.ideal}kg ideal\n\n` +
-    `📊 *MACROS DIARIOS*\n` +
-    `🔥 ${S.kcal} kcal (referencia)\n` +
-    `🥩 ${S.prot}g proteína\n` +
-    `🥑 ${S.fat_g}g grasa\n` +
-    `🍠 ${S.carb}g carbos\n` +
-    `💧 ${S.water}L agua\n\n` +
-    `🎯 Objetivo: ${goalObj?.name}\n` +
-    `🏃 Actividad: ${actObj?.name}\n` +
-    `⏱️ Ayuno: ${fastObj?.name}\n\n` +
-    `🥚 Desayuno: ${S.prot<60?2:S.prot<84?3:4} huevos + aguacate\n` +
-    `🍗 Almuerzo: ${Math.round(S.prot/3/0.31)}g pollo + ensalada\n` +
-    `🐟 Cena: ${Math.round(S.prot/3/0.22)}g salmón + verduras\n\n` +
-    `_Calculado con Sinergia En Movimiento · @sinergiamov_`;
-  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  const fast = FASTS.find(f => f.id === S.fast)?.name || S.fast;
+  const planD = MEAL_PLANS.desayuno;
+  const planA = MEAL_PLANS.almuerzo;
+  const planC = MEAL_PLANS.cena;
+  const mainD = dayRotate(planD.mains);
+  const mainA = dayRotate(planA.mains);
+  const mainC = dayRotate(planC.mains);
+  const msg = `🌿 *MI PLAN METABÓLICO SINERGIA*\n\n` +
+    `👤 ${S.name} | ${S.sex==='m'?'Hombre':'Mujer'} ${S.age} años\n` +
+    `⚖️ Peso: ${S.weight}kg → Meta: ${S.ideal}kg\n\n` +
+    `🔥 *${S.kcal} kcal/día*\n` +
+    `🥩 Proteína: ${S.prot}g | 🥑 Grasa: ${S.fat_g}g | 🌾 Carbos: ${S.carb}g\n` +
+    `💧 Agua: ${S.water}L/día\n\n` +
+    `🌅 *Desayuno:* ${mainD.ico} ${mainD.name}\n` +
+    `☀️ *Almuerzo:* ${mainA.ico} ${mainA.name}\n` +
+    `🌙 *Cena:* ${mainC.ico} ${mainC.name}\n\n` +
+    `⏱️ Ayuno: ${fast}\n\n` +
+    `_Calculado con Sinergia Metabólica · @sinergiamov_\n` +
+    `👉 sinergia-macros.netlify.app`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function copyPlan() {
-  const goalObj = GOALS.find(g => g.id === S.goal);
-  const text = `PLAN METABÓLICO SINERGIA — ${S.name}\n` +
-    `Kcal: ${S.kcal} · Prot: ${S.prot}g · Grasa: ${S.fat_g}g · Carbos: ${S.carb}g · Agua: ${S.water}L\n` +
-    `Objetivo: ${goalObj?.name} · Ayuno: ${S.fast}`;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 Plan copiado al portapapeles'));
+  const fast = FASTS.find(f => f.id === S.fast)?.name || S.fast;
+  const mainD = dayRotate(MEAL_PLANS.desayuno.mains);
+  const mainA = dayRotate(MEAL_PLANS.almuerzo.mains);
+  const mainC = dayRotate(MEAL_PLANS.cena.mains);
+  const text = `MI PLAN METABÓLICO SINERGIA\n` +
+    `${S.name} | ${S.sex==='m'?'Hombre':'Mujer'} ${S.age} años\n` +
+    `Peso: ${S.weight}kg → Meta: ${S.ideal}kg\n\n` +
+    `${S.kcal} kcal/día\n` +
+    `Proteína: ${S.prot}g | Grasa: ${S.fat_g}g | Carbos: ${S.carb}g\n` +
+    `Agua: ${S.water}L/día\n\n` +
+    `Desayuno: ${mainD.name}\nAlmuerzo: ${mainA.name}\nCena: ${mainC.name}\n\n` +
+    `Ayuno: ${fast}\nsinergia-macros.netlify.app`;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('✅ Plan copiado al portapapeles'))
+    .catch(() => showToast('❌ No se pudo copiar'));
 }
 
-/* ══════════════════════════════════════════════════════
-   MÓDULO DIARIO (S13)
-══════════════════════════════════════════════════════ */
+/* ── MÓDULO DIARIO ── */
 function renderDailyModule() {
   renderDayHeader();
   renderDailyMeals();
@@ -1913,353 +2090,254 @@ function renderDailyModule() {
 }
 
 function renderDayHeader() {
-  const now   = new Date();
-  const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const wrap = document.getElementById('day-header-wrap');
+  if (!wrap) return;
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const now = new Date();
+  wrap.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:28px;font-weight:900;color:#fff">${days[now.getDay()]}</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.6)">
+        ${now.getDate()} de ${months[now.getMonth()]} ${now.getFullYear()}
+      </div>
+      <div style="font-size:12px;color:#1a9e8f;margin-top:4px">
+        ⏱️ Ayuno ${S.fast || '16/8'} · Ventana activa
+      </div>
+    </div>`;
+
+  /* Auto-reset si es un nuevo día */
   const lastDay = localStorage.getItem('sinergia_last_day');
   const today   = todayKey();
   if (lastDay && lastDay !== today) {
-    DS.meals = {desayuno:null, almuerzo:null, cena:null};
-    showToast('🌅 ¡Nuevo día! ' + dias[now.getDay()] + ' ' + now.getDate() + ' ' + meses[now.getMonth()]);
+    DS.meals = { desayuno: null, almuerzo: null, cena: null };
+    DS.prot = 0; DS.fiber = 0; DS.water = 0; DS.carb = 0;
   }
   localStorage.setItem('sinergia_last_day', today);
-  const hist   = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const dayNum = Object.keys(hist).filter(k => !k.startsWith('_')).length + 1;
-  const el = document.getElementById('day-header-wrap');
-  if (!el) return;
-  el.innerHTML = `
-    <div class="day-header">
-      <div>
-        <div class="day-title">📅 ${dias[now.getDay()]} ${now.getDate()} ${meses[now.getMonth()]}</div>
-        <div class="day-sub">Sinergia En Movimiento · @sinergiamov</div>
-      </div>
-      <div style="text-align:right">
-        <div class="day-num">Día ${dayNum}</div>
-        <div class="day-lbl">de tu plan</div>
-      </div>
-    </div>`;
 }
 
 function renderDailyMeals() {
-  const hist  = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const today = hist[todayKey()] || {};
-  const meals = [
-    {key:'desayuno',ico:'🌅',name:'Desayuno', time:'Mañana',   slide:14},
-    {key:'almuerzo',ico:'☀️',name:'Almuerzo', time:'Mediodía', slide:15},
-    {key:'cena',    ico:'🌙',name:'Cena',      time:'Noche',    slide:16},
-  ];
   const wrap = document.getElementById('daily-meals-wrap');
   if (!wrap) return;
+  const meals = [
+    {key:'desayuno', ico:'🌅', name:'Desayuno',  slide:14, time:'7:00 – 10:00 AM'},
+    {key:'almuerzo', ico:'☀️', name:'Almuerzo',  slide:15, time:'12:00 – 3:00 PM'},
+    {key:'cena',     ico:'🌙', name:'Cena',       slide:16, time:'6:00 – 8:00 PM'},
+  ];
   wrap.innerHTML = meals.map(m => {
-    const done = today[m.key];
+    const done = DS.meals[m.key];
     return `
-      <div class="meal-card ${done?'done':'available'}">
-        <div class="mc-top">
-          <div class="mc-left">
-            <span class="mc-ico">${m.ico}</span>
-            <div>
-              <div class="mc-name">${m.name}</div>
-              <div class="mc-time">${done?'✅ Registrado':m.time}</div>
-            </div>
+      <div class="daily-meal-card ${done ? 'done' : ''}">
+        <div class="dmc-left">
+          <span class="dmc-ico">${m.ico}</span>
+          <div class="dmc-txt">
+            <strong>${m.name}</strong>
+            <span>${m.time}</span>
+            ${done ? `<span style="color:#1a9e8f;font-size:11px">✅ ${done.rating || 'Registrado'}</span>` : ''}
           </div>
-          <span class="mc-status ${done?'done':'available'}">${done?'✅ Listo':'⏳ Pendiente'}</span>
         </div>
-        ${!done ? `
-          <div class="mc-btns">
-            <button class="mc-btn-ai" onclick="goTo(${m.slide})">📸 Registrar con IA</button>
-            <button class="mc-btn-manual" onclick="registerMealManual('${m.key}')">✏️ Manual</button>
-          </div>` : `
-          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:8px">
-            ${done.note || 'Comida registrada ✅'}
-          </div>`}
+        <button onclick="goTo(${m.slide})"
+          style="padding:8px 14px;background:${done?'rgba(26,158,143,.2)':'linear-gradient(135deg,#1a9e8f,#127a6e)'};
+          border:${done?'1px solid #1a9e8f':'none'};border-radius:8px;
+          color:#fff;font-size:12px;font-weight:700;cursor:pointer">
+          ${done ? '✏️ Editar' : '📝 Registrar'}
+        </button>
       </div>`;
   }).join('');
 }
 
 function renderStreak() {
-  const hist   = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const days   = Object.keys(hist).filter(k => !k.startsWith('_'));
-  const streak = days.length;
-  const meals  = DS.meals || {};
-  const done   = [meals.desayuno, meals.almuerzo, meals.cena].filter(Boolean).length;
-  const pct    = Math.round((done / 3) * 100);
-  const el = document.getElementById('streak-wrap');
-  if (!el) return;
-  el.innerHTML = `
+  const wrap = document.getElementById('streak-wrap');
+  if (!wrap) return;
+  const history = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
+  const keys    = Object.keys(history).sort().reverse();
+  let streak = 0;
+  const today = todayKey();
+  for (let i = 0; i < keys.length; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (history[k] && history[k].completed) streak++;
+    else break;
+  }
+  const msg = streak === 0 ? '¡Empieza hoy tu racha! 💪'
+    : streak < 3  ? `🔥 ${streak} día${streak>1?'s':''} — ¡Vas bien!`
+    : streak < 7  ? `🔥🔥 ${streak} días — ¡Constancia!`
+    : streak < 14 ? `🔥🔥🔥 ${streak} días — ¡Eres un ejemplo Sinergia!`
+    : `🏆 ${streak} días — ¡Nivel élite Sinergia!`;
+  wrap.innerHTML = `
     <div class="streak-card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-        <div>
-          <div class="streak-num">🔥 ${streak}</div>
-          <div class="streak-lbl">días de racha</div>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px">
-            Hoy: ${done}/3 comidas · ${pct}%
-          </div>
-          <div style="background:rgba(255,255,255,.1);border-radius:20px;height:8px;overflow:hidden">
-            <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#1a9e8f,#00c6ff);
-              border-radius:20px;transition:width .4s"></div>
-          </div>
-        </div>
-      </div>
-      ${done===3 ? `
-        <div style="text-align:center;font-size:12px;color:#00c6ff;margin-bottom:8px">
-          ✅ ¡Completaste las 3 comidas de hoy! Eres un ejemplo Sinergia 🏆
-        </div>` : `
-        <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:8px">
-          ${3-done} comida${3-done!==1?'s':''} pendiente${3-done!==1?'s':''} hoy
-        </div>`}
-      <button onclick="continuarRacha()"
-        style="width:100%;padding:14px;background:linear-gradient(135deg,#1a9e8f,#00c6ff);
-        border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:800;
-        cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-        box-shadow:0 4px 15px rgba(0,198,255,.3)">
-        🔥 Continuar con mi racha →
-      </button>
+      <div style="font-size:36px;font-weight:900;color:#f0a500">${streak}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.8)">${msg}</div>
     </div>`;
 }
 
-function continuarRacha() {
-  const hist  = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const today = todayKey();
-  const meals = DS.meals || {};
-  const done  = [meals.desayuno, meals.almuerzo, meals.cena].filter(Boolean).length;
-  if (done > 0) {
-    if (!hist[today]) hist[today] = {};
-    hist[today]._closed  = true;
-    hist[today]._comidas = done;
-    hist[today]._fecha   = today;
-    localStorage.setItem('sinergia_history', JSON.stringify(hist));
-    showToast('🔥 ¡Racha guardada! ' + done + '/3 comidas · Vuelve mañana 💚');
-  } else {
-    showToast('📝 Registra al menos 1 comida para guardar tu racha');
-  }
-  goTo(12);
-}
-
-function registerMealManual(mealKey) {
-  const hist  = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const today = todayKey();
-  if (!hist[today]) hist[today] = {};
-  hist[today][mealKey] = {note:'Registrado manualmente ✅', ts:Date.now()};
-  localStorage.setItem('sinergia_history', JSON.stringify(hist));
-  // ✅ SINCRONIZAR con DS.meals para que cuente en la racha
-  DS.meals[mealKey] = {note:'Registrado manualmente ✅', ts:Date.now()};
-  renderDailyMeals(); renderStreak();
-  showToast(`✅ ${mealKey} registrado`);
-}
-
-function registerMealFromTab(mealKey) {
-  const hist  = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const today = todayKey();
-  if (!hist[today]) hist[today] = {};
-  hist[today][mealKey] = {note:'Registrado desde plan ✅', ts:Date.now()};
-  localStorage.setItem('sinergia_history', JSON.stringify(hist));
-  // ✅ SINCRONIZAR con DS.meals para que cuente en la racha
-  DS.meals[mealKey] = {note:'Registrado desde plan ✅', ts:Date.now()};
-  const btn = document.getElementById('reg-btn-' + mealKey);
-  if (btn) { btn.classList.add('done'); btn.textContent = '✅ Registrado'; }
-  showToast(`✅ ${MEAL_PLANS[mealKey].name} registrada`);
-}
-
-/* ══════════════════════════════════════════════════════
-   SLIDES REGISTRO S14/S15/S16
-   ✅ CORREGIDO: analyzeRegPhoto usa OPENAI_KEY
-══════════════════════════════════════════════════════ */
+/* ── REGISTRO DE COMIDAS ── */
 function renderRegSlide(mealKey, containerId) {
-  const plan = MEAL_PLANS[mealKey];
-  const protPorComida = Math.round(S.prot / 3);
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
+  const plan = MEAL_PLANS[mealKey];
+  const main = dayRotate(plan.mains);
   wrap.innerHTML = `
-    <div class="card">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">
-        ${plan.ico} ${plan.name}
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:8px">
+        Referencia del día: <strong style="color:#fff">${main.ico} ${main.name}</strong>
       </div>
-      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px">
-        Meta: ${protPorComida}g proteína · ${Math.round(S.kcal/3)} kcal
-      </div>
-      <div class="photo-box" onclick="document.getElementById('reg-photo-${mealKey}').click()"
-        id="reg-box-${mealKey}">
-        <span style="font-size:2rem">📷</span>
-        <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">Foto de tu plato</p>
-      </div>
-      <input type="file" id="reg-photo-${mealKey}" accept="image/*" capture="environment"
-        style="display:none" onchange="previewRegPhoto('${mealKey}',this)">
-      <button class="ai-analyze-btn" id="reg-ai-btn-${mealKey}"
-        onclick="analyzeRegPhoto('${mealKey}')" disabled style="margin-top:10px">
-        🤖 Analizar con IA
-      </button>
-      <div class="ai-load" id="reg-ai-load-${mealKey}">
-        <div class="ai-spinner"></div>
-        <p style="font-size:12px;color:rgba(255,255,255,.5)">Analizando...</p>
-      </div>
-      <div class="ai-result" id="reg-ai-result-${mealKey}" style="display:none"></div>
     </div>
-    <button onclick="registerMealManual('${mealKey}');goTo(17)"
-      style="width:100%;padding:13px;background:linear-gradient(135deg,#1a9e8f,#127a6e);border:none;
-      border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px">
-      ✅ Confirmar ${plan.name} →
+    <div class="reg-photo-wrap">
+      <input type="file" accept="image/*" capture="environment"
+        id="reg-photo-${mealKey}" style="display:none"
+        onchange="previewRegPhoto('${mealKey}')">
+      <label for="reg-photo-${mealKey}" class="ia-btn">📷 Foto de mi plato (opcional)</label>
+      <img id="reg-prev-${mealKey}"
+        style="display:none;width:100%;border-radius:10px;margin-top:8px;object-fit:contain;max-height:180px">
+    </div>
+    <div class="fld" style="margin-top:12px">
+      <label>Notas (opcional)</label>
+      <textarea id="reg-notes-${mealKey}" placeholder="¿Cómo te sentiste? ¿Qué comiste exactamente?"
+        style="width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+        border-radius:8px;color:#fff;padding:10px;font-size:13px;resize:none;height:70px"></textarea>
+    </div>
+    <div style="margin:12px 0 8px;font-size:13px;color:rgba(255,255,255,.7)">¿Cómo fue?</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      ${['😔 Mal','😐 Regular','😊 Bien','🔥 Excelente'].map((r,i) => `
+        <button class="rating-btn" id="rating-${mealKey}-${i}" onclick="setRating('${mealKey}',${i},'${r}')"
+          style="flex:1;padding:8px 4px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);
+          border-radius:8px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer">${r}</button>`).join('')}
+    </div>
+    <button onclick="confirmMeal('${mealKey}')"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#1a9e8f,#127a6e);
+      border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:800;cursor:pointer">
+      ✅ Confirmar ${plan.ico} ${plan.name}
     </button>`;
 }
 
-function previewRegPhoto(mealKey, input) {
-  if (!input.files[0]) return;
+function previewRegPhoto(mealKey) {
+  const file = document.getElementById('reg-photo-' + mealKey)?.files[0];
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const box = document.getElementById('reg-box-' + mealKey);
-    if (box) box.innerHTML = `<img src="${e.target.result}"
-      style="width:100%;object-fit:contain;border-radius:12px;max-height:220px">`;
-    const btn = document.getElementById('reg-ai-btn-' + mealKey);
-    if (btn) btn.disabled = false;
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-
-async function analyzeRegPhoto(mealKey) {
-  const input = document.getElementById('reg-photo-' + mealKey);
-  const resultDiv = document.getElementById('reg-ai-result-' + mealKey);
-  if (!input || !input.files[0]) return;
-
-  resultDiv.innerHTML = '<p style="color:#00c6ff">🔍 Analizando...</p>';
-
-  const file = input.files[0];
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const base64 = e.target.result.split(',')[1];
-    const mimeType = file.type;
-    const prompt = `Eres el asistente de Sinergia En Movimiento. Analiza esta comida en español:
-
-🥩 Proteína estimada: [Xg aprox]
-⭐ Puntaje Sinergia: [X/10]
-[Si ≥ 8]: ✅ ¡Plato Sinergia! Sigue así 🔥
-[Si < 8]: 💡 Sugerencia rápida: [1 mejora concreta]
-
-Máximo 4 líneas. Tono motivacional.`;
-    try {
-      const res = await fetch('/.netlify/functions/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mimeType, prompt })
-      });
-      const data = await res.json();
-      const text = data?.text || 'Sin respuesta';
-      resultDiv.innerHTML = `<p style="color:#e0ffe0;white-space:pre-wrap">${text}</p>`;
-    } catch (err) {
-      resultDiv.innerHTML = `<p style="color:#ff6b6b">❌ Error: ${err.message}</p>`;
-    }
+    const prev = document.getElementById('reg-prev-' + mealKey);
+    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
   };
   reader.readAsDataURL(file);
 }
 
-
-/* ══════════════════════════════════════════════════════
-   RESUMEN DEL DÍA (S17)
-══════════════════════════════════════════════════════ */
-function renderDaySummary() {
-  const hist  = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const today = hist[todayKey()] || {};
-  const meals = ['desayuno','almuerzo','cena'];
-  const done  = meals.filter(m => today[m]).length;
-  const pct   = Math.round((done / 3) * 100);
-  const msgs  = [
-    '¡Empieza mañana con todo! 💪',
-    '¡Bien! Sigue construyendo el hábito 🌱',
-    '¡Dos de tres! Casi perfecto 🔥',
-    '¡Día completo! Eres constancia pura 🏆'
-  ];
-  const wrap = document.getElementById('day-summary-wrap');
-  if (!wrap) return;
-  wrap.innerHTML = `
-    <div class="rh" style="text-align:center">
-      <div style="font-size:48px;font-weight:900">${pct}%</div>
-      <div style="font-size:13px;opacity:.8;margin-top:4px">del plan completado hoy</div>
-      <div style="font-size:13px;color:#00c6ff;margin-top:10px">${msgs[done]}</div>
-    </div>
-    ${meals.map(m => `
-      <div style="display:flex;align-items:center;gap:12px;padding:12px;
-        background:rgba(255,255,255,.05);border-radius:10px;margin-bottom:8px;
-        border:1px solid rgba(255,255,255,.08)">
-        <span style="font-size:1.5rem">${MEAL_PLANS[m].ico}</span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:#fff">${MEAL_PLANS[m].name}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.5)">
-            ${today[m]?today[m].note:'No registrado'}
-          </div>
-        </div>
-        <span style="font-size:1.2rem">${today[m]?'✅':'⭕'}</span>
-      </div>`).join('')}`;
+function setRating(mealKey, idx, label) {
+  document.querySelectorAll(`[id^="rating-${mealKey}-"]`).forEach((b,i) => {
+    b.style.background = i === idx ? 'rgba(26,158,143,.4)' : 'rgba(255,255,255,.07)';
+    b.style.borderColor = i === idx ? '#1a9e8f' : 'rgba(255,255,255,.15)';
+    b.style.color = i === idx ? '#fff' : 'rgba(255,255,255,.7)';
+  });
+  window[`_rating_${mealKey}`] = label;
 }
 
-/* ══════════════════════════════════════════════════════
-   HISTORIAL (S18)
-══════════════════════════════════════════════════════ */
-function renderHistory() {
-  const hist = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
-  const keys = Object.keys(hist).filter(k => !k.startsWith('_')).sort().reverse().slice(0,14);
-  const wrap = document.getElementById('history-wrap');
+function confirmMeal(mealKey) {
+  const notes  = document.getElementById('reg-notes-' + mealKey)?.value || '';
+  const rating = window[`_rating_${mealKey}`] || '😊 Bien';
+  DS.meals[mealKey] = { notes, rating, time: new Date().toLocaleTimeString('es-CO') };
+
+  /* Guardar en historial */
+  const history = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
+  const today   = todayKey();
+  if (!history[today]) history[today] = {};
+  history[today][mealKey] = DS.meals[mealKey];
+  const allDone = DS.meals.desayuno && DS.meals.almuerzo && DS.meals.cena;
+  if (allDone) history[today].completed = true;
+  localStorage.setItem('sinergia_history', JSON.stringify(history));
+
+  showToast(`✅ ${MEAL_PLANS[mealKey].name} registrado`);
+  goTo(13);
+}
+
+/* ── RESUMEN DEL DÍA ── */
+function renderDaySummary() {
+  const wrap = document.getElementById('day-summary-wrap');
   if (!wrap) return;
+  const done  = [DS.meals.desayuno, DS.meals.almuerzo, DS.meals.cena].filter(Boolean).length;
+  const pct   = Math.round((done / 3) * 100);
+  const meals = [
+    {key:'desayuno', ico:'🌅', name:'Desayuno'},
+    {key:'almuerzo', ico:'☀️', name:'Almuerzo'},
+    {key:'cena',     ico:'🌙', name:'Cena'},
+  ];
+  wrap.innerHTML = `
+    <div class="card" style="text-align:center;margin-bottom:12px">
+      <div style="font-size:42px;font-weight:900;color:${pct===100?'#1a9e8f':'#f0a500'}">${pct}%</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">${done}/3 comidas registradas</div>
+      <div style="background:rgba(255,255,255,.1);border-radius:10px;height:8px;margin-top:10px">
+        <div style="background:${pct===100?'#1a9e8f':'#f0a500'};height:8px;border-radius:10px;
+          width:${pct}%;transition:width .5s"></div>
+      </div>
+    </div>
+    ${meals.map(m => {
+      const d = DS.meals[m.key];
+      return `<div class="card" style="margin-bottom:8px;opacity:${d?1:.5}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:24px">${m.ico}</span>
+          <div style="flex:1">
+            <strong style="color:#fff">${m.name}</strong>
+            ${d ? `<div style="font-size:11px;color:#1a9e8f">${d.rating} · ${d.time}</div>
+                   ${d.notes?`<div style="font-size:11px;color:rgba(255,255,255,.5)">${d.notes}</div>`:''}` 
+                : '<div style="font-size:11px;color:rgba(255,255,255,.4)">No registrado</div>'}
+          </div>
+          ${d?'<span style="color:#1a9e8f;font-size:20px">✅</span>':'<span style="color:rgba(255,255,255,.3);font-size:20px">○</span>'}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+/* ── HISTORIAL ── */
+function renderHistory() {
+  const wrap    = document.getElementById('history-wrap');
+  if (!wrap) return;
+  const history = JSON.parse(localStorage.getItem('sinergia_history') || '{}');
+  const keys    = Object.keys(history).sort().reverse().slice(0, 14);
   if (!keys.length) {
-    wrap.innerHTML = `
-      <div class="card" style="text-align:center;color:rgba(255,255,255,.5);font-size:13px">
-        📅 Aún no hay días registrados.<br>¡Empieza hoy!</div>`;
+    wrap.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);padding:20px">Sin registros aún</div>';
     return;
   }
   wrap.innerHTML = keys.map(k => {
-    const day   = hist[k];
-    const done  = ['desayuno','almuerzo','cena'].filter(m => day[m]).length;
-    const pct   = Math.round((done / 3) * 100);
-    const color = pct===100 ? '#1a9e8f' : pct>=66 ? '#f0a500' : '#e05252';
-    const d     = new Date(k + 'T12:00:00');
-    const label = `${d.getDate()}/${d.getMonth()+1}`;
+    const day  = history[k];
+    const done = ['desayuno','almuerzo','cena'].filter(m => day[m]).length;
+    const pct  = Math.round((done / 3) * 100);
     return `
-      <div class="hist-day">
-        <span class="hd-date">${label}</span>
-        <div class="hd-bar">
-          <div class="hd-fill" style="width:${pct}%;background:${color}"></div>
+      <div class="card" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;font-weight:700;color:#fff">${k}</span>
+          <span style="font-size:13px;font-weight:800;color:${pct===100?'#1a9e8f':'#f0a500'}">${pct}%</span>
         </div>
-        <span class="hd-score" style="color:${color}">${done}/3</span>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          ${['desayuno','almuerzo','cena'].map((m,i) => `
+            <span style="font-size:18px;opacity:${day[m]?1:.25}">${['🌅','☀️','🌙'][i]}</span>`).join('')}
+          ${day.completed ? '<span style="color:#1a9e8f;font-size:11px;margin-left:auto">🏆 Día completo</span>' : ''}
+        </div>
       </div>`;
   }).join('');
 }
 
 function clearHistory() {
-  if (!confirm('¿Borrar todo el historial? Esta acción no se puede deshacer.')) return;
+  if (!confirm('¿Borrar todo el historial?')) return;
   localStorage.removeItem('sinergia_history');
   localStorage.removeItem('sinergia_last_day');
+  DS.meals = { desayuno: null, almuerzo: null, cena: null };
   renderHistory();
   showToast('🗑️ Historial borrado');
 }
 
-/* ══════════════════════════════════════════════════════
-   ✅ CARGAR PLAN GUARDADO — loading screen no se queda pegado
-══════════════════════════════════════════════════════ */
+/* ── LOAD SAVED PLAN ── */
 function loadSavedPlan() {
+  const saved = localStorage.getItem('sinergia_plan');
+  if (!saved) return;
   try {
-    const saved = localStorage.getItem('sinergia_plan');
-    if (!saved) return;
-    const p = JSON.parse(saved);
-    if (p && p.name && p.kcal) {
-      Object.assign(S, p);
-      setTimeout(() => {
-        const ls = document.getElementById('ls');
-        if (ls) { ls.style.opacity = '0'; setTimeout(() => ls.style.display = 'none', 400); }
-        renderHero();
-        renderDetail();
-        renderWater();
-        renderMeals();
-        renderTrackers();
-        goTo(9);
-      }, 1600);
+    const parsed = JSON.parse(saved);
+    if (parsed && parsed.name && parsed.kcal) {
+      Object.assign(S, parsed);
+      goTo(9);
     }
-  } catch(e) {}
+  } catch(e) { localStorage.removeItem('sinergia_plan'); }
 }
 
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    document.getElementById('track').style.transform = `translateX(-${cur * 100}vw)`;
-  }, 300);
-});
 </script>
 </body>
 </html>
