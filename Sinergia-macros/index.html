@@ -2005,20 +2005,39 @@ function renderOneMeal(mealKey, containerId) {
     <!-- Evitar condiciones -->
     ${avoidHtml}
 
-    <!-- IA Groq -->
+        <!-- IA Groq -->
     <div class="ia-meal-section">
       <h4>📸 Analiza tu plato con IA</h4>
       <input type="file" accept="image/*" capture="environment"
         id="photo-${mealKey}" style="display:none"
         onchange="previewMealPhoto('${mealKey}')">
-      <label for="photo-${mealKey}" class="btn-analyze">📷 Subir foto de mi plato</label>
-      <img id="prev-${mealKey}" style="display:none;width:100%;border-radius:10px;margin-top:8px;object-fit:contain;max-height:200px">
+
+      <!-- Recuadro visual para la foto -->
+      <label for="photo-${mealKey}" style="display:block;cursor:pointer">
+        <div id="photo-box-${mealKey}"
+          style="width:100%;min-height:140px;background:rgba(46,204,113,.06);
+          border:2px dashed rgba(46,204,113,.4);border-radius:14px;
+          display:flex;flex-direction:column;align-items:center;
+          justify-content:center;margin-bottom:10px;overflow:hidden;
+          transition:border-color .2s">
+          <img id="prev-${mealKey}"
+            style="display:none;width:100%;max-height:220px;object-fit:contain;border-radius:12px">
+          <div id="photo-placeholder-${mealKey}" style="text-align:center;padding:20px">
+            <span style="font-size:2rem;display:block;margin-bottom:6px">📷</span>
+            <span style="font-size:.8rem;color:rgba(255,255,255,.5)">
+              Toca para subir foto de tu plato
+            </span>
+          </div>
+        </div>
+      </label>
+
       <button class="ia-analyze-btn" id="analyze-btn-${mealKey}"
         style="display:none" onclick="analyzeMealPhoto('${mealKey}')">
         🤖 Analizar con IA Sinergia
       </button>
       <div id="ia-result-${mealKey}" class="ia-result"></div>
     </div>
+
 
     <!-- Registrar comida -->
     <button onclick="goTo(${mealKey==='desayuno'?14:mealKey==='almuerzo'?15:16})"
@@ -2095,10 +2114,12 @@ function previewMealPhoto(mealKey) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const prev = document.getElementById('prev-' + mealKey);
-    const btn  = document.getElementById('analyze-btn-' + mealKey);
-    if (prev) { prev.src = e.target.result; prev.style.display = 'block'; }
-    if (btn)  btn.style.display = 'block';
+    const prev        = document.getElementById('prev-' + mealKey);
+    const btn         = document.getElementById('analyze-btn-' + mealKey);
+    const placeholder = document.getElementById('photo-placeholder-' + mealKey);
+    if (prev)        { prev.src = e.target.result; prev.style.display = 'block'; }
+    if (placeholder)   placeholder.style.display = 'none';
+    if (btn)           btn.style.display = 'block';
   };
   reader.readAsDataURL(file);
 }
