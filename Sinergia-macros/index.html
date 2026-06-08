@@ -223,7 +223,7 @@ body.on-s0 #bnav{display:none!important}
   #track{display:block!important;transform:none!important;height:auto!important;overflow:visible!important}
   .slide{min-width:100%!important;height:auto!important;overflow:visible!important;page-break-after:always;display:none!important}
   .slide::after{display:none!important}
-  #s9,#s10,#s11,#s13{display:block!important}
+  #s9,#s10,#s11,#s12{display:block!important}
   #pbar,#dots,#bnav,#ls{display:none!important}
   .sbg,.bnx,.bbk,.sbtn,.swap-toggle,.swap-panel,.reg-panel,.ia-meal-section{display:none!important}
    #print-msg{display:block!important}
@@ -478,42 +478,13 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
   </div>
 </div>
 
-<!-- S13 — MÓDULO DIARIO (registro inline v3.6) -->
+<!-- S13 — HISTORIAL + RACHA v3.7 -->
 <div class="slide" id="s13">
-  <div class="sbg" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800')"></div>
-  <div class="si">
-    <div id="day-header-wrap"></div>
-    <div class="sec-lbl">🍽️ Registro de Hoy</div>
-    <div id="daily-meals-wrap"></div>
-    <div class="sec-lbl" style="margin-top:8px">🔥 Racha</div>
-    <div id="streak-wrap"></div>
-    <button onclick="goTo(15)"
-      style="width:100%;padding:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-      border-radius:10px;color:rgba(255,255,255,.6);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px">
-      📅 Ver Historial →
-    </button>
-  </div>
-</div>
-
-<!-- S14 — RESUMEN DEL DÍA -->
-<div class="slide" id="s14">
-  <div class="sbg" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800')"></div>
-  <div class="si">
-    <div class="sh2"><h1>✅ Resumen del Día</h1><p>Tu balance nutricional de hoy</p></div>
-    <div id="day-summary-wrap"></div>
-    <button onclick="goTo(13)"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#1a9e8f,#127a6e);border:none;
-      border-radius:10px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:12px">
-      🔄 Nuevo día →
-    </button>
-  </div>
-</div>
-
-<!-- S15 — HISTORIAL -->
-<div class="slide" id="s15">
   <div class="sbg" style="background-image:url('https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800')"></div>
   <div class="si">
-    <div class="sh2"><h1>📅 Historial</h1><p>Tu progreso de los últimos días</p></div>
+    <div class="sh2"><h1>📅 Mi Progreso</h1><p>Racha y historial de los últimos días</p></div>
+    <div id="streak-wrap"></div>
+    <div class="sec-lbl" style="margin-top:8px">📆 Últimos 14 días</div>
     <div id="history-wrap"></div>
     <button onclick="clearHistory()"
       style="width:100%;padding:11px;background:rgba(224,82,82,.1);border:1px solid rgba(224,82,82,.25);
@@ -522,6 +493,7 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
     </button>
   </div>
 </div>
+
 
 </div></div><!-- /track /app -->
 
@@ -945,7 +917,8 @@ const MEAL_PLANS = {
    Init + Navegación + Acceso + Setters + Builders + Swipe
 ══════════════════════════════════════════════════════ */
 
-const TOTAL = 16;
+const TOTAL = 14;
+
 
 window.addEventListener('load', () => {
   setTimeout(() => {
@@ -968,12 +941,10 @@ function goTo(n) {
   if (cur === 3)  calcIdealWeight();
   if (cur === 8)  buildSummary();
   if (cur === 9)  { calcPlan(); renderResults(); }
-  if (cur === 10) renderMeals();
   if (cur === 11) renderTrackers();
-  if (cur === 13) renderDailyModule();
-  if (cur === 14) renderDaySummary();
-  if (cur === 15) renderHistory();
-}
+  if (cur === 10) { renderMeals(); renderMealRegisters(); }
+  if (cur === 13) { renderStreak(); renderHistory(); } }
+
 
 function goNext() {
   if (cur === 0) { checkAccess(); return; }
@@ -990,7 +961,7 @@ function goBack() {
 function updateNav() {
   const btnNext = document.getElementById('btn-next');
   const btnBack = document.getElementById('btn-back');
-  const labels = [
+    const labels = [
     'Entrar →',              /* 0  acceso */
     'Comenzar →',            /* 1  principios */
     'Siguiente →',           /* 2  perfil */
@@ -1003,15 +974,14 @@ function updateNav() {
     'Ver mis comidas →',     /* 9  resultados */
     'Ver trackers →',        /* 10 comidas */
     'Compartir →',           /* 11 trackers */
-    'Mi diario →',           /* 12 compartir */
-    '',                      /* 13 diario — oculto */
-    'Ver historial →',       /* 14 resumen día */
-    '← Volver al diario',    /* 15 historial */
+    'Mi progreso →',         /* 12 compartir */
+    '← Volver',              /* 13 historial */
   ];
   btnNext.textContent = labels[cur] || 'Siguiente →';
   btnBack.style.display = cur === 0 ? 'none' : 'flex';
-  btnNext.style.display = (cur === 13 || cur === 15) ? 'none' : 'flex';
+  btnNext.style.display = cur === 13 ? 'none' : 'flex';
 }
+
 
 function updateProgress() {
   const pct = (cur / (TOTAL - 1)) * 100;
@@ -1692,7 +1662,31 @@ function renderOneMeal(mealKey) {
           border-top-color:#1a9e8f;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
         <div style="font-size:12px;color:rgba(255,255,255,.6)">Analizando tu plato...</div>
       </div>
-      <div id="ia-result-${mealKey}" class="ia-result-box" style="display:none"></div>
+         <div id="ia-result-${mealKey}" class="ia-result-box" style="display:none"></div>
+    </div>
+    <!-- ── REGISTRO INLINE v3.7 ── -->
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
+      <div id="reg-status-${mealKey}"></div>
+      <div class="reg-panel" id="reg-panel-${mealKey}">
+        <div class="reg-panel-title">✏️ ¿Cómo fue tu ${MEAL_PLANS[mealKey].name}?</div>
+        <div class="reg-ref">
+          <strong id="reg-ref-food-${mealKey}"></strong>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px">¿Cómo te sentiste?</div>
+        <div class="rating-row">
+          <button class="rating-btn-inline" onclick="selectRating('${mealKey}','😞 Mal',this)">😞<br>Mal</button>
+          <button class="rating-btn-inline" onclick="selectRating('${mealKey}','😐 Regular',this)">😐<br>Regular</button>
+          <button class="rating-btn-inline" onclick="selectRating('${mealKey}','😊 Bien',this)">😊<br>Bien</button>
+          <button class="rating-btn-inline" onclick="selectRating('${mealKey}','🤩 Excelente',this)">🤩<br>Excelente</button>
+        </div>
+        <textarea id="notes-${mealKey}" placeholder="Notas opcionales..."
+          style="width:100%;padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+          border-radius:8px;color:#fff;font-size:12px;resize:none;height:60px;margin-bottom:10px;
+          font-family:inherit;outline:none"></textarea>
+        <button class="reg-confirm-btn" onclick="confirmMeal('${mealKey}')">
+          ✅ Confirmar ${MEAL_PLANS[mealKey].name}
+        </button>
+      </div>
     </div>`;
 }
 
@@ -1807,37 +1801,40 @@ function resetTracker(id) {
 
 /* ── COMPARTIR v3.6 — AVANCE DEL DÍA ── */
 function shareWhatsApp() {
-  const key = todayKey();
+  const key   = todayKey();
   const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
   const streak = getStreak();
-  const meals = ['desayuno','almuerzo','cena'];
-  const mealIcos = { desayuno:'🌅', almuerzo:'☀️', cena:'🌙' };
-  const done = meals.filter(m => daily[m]?.done).length;
+  const d = new Date(key + 'T12:00:00');
+  const dayName = d.toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'short' });
+  const done = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
   const pct  = Math.round((done / 3) * 100);
+  const tKey = 'sinergia_trackers_' + key;
+  const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
+  const agua = tr.water || 0;
 
-  let mealLines = meals.map(m => {
-    const d = daily[m];
-    if (d?.done) {
-      const rating = d.rating || '—';
-      return `${mealIcos[m]} ${m.charAt(0).toUpperCase()+m.slice(1)}: ✅ Registrado · ${rating}`;
-    }
-    return `${mealIcos[m]} ${m.charAt(0).toUpperCase()+m.slice(1)}: ⏳ Pendiente`;
-  }).join('\n');
+  const mealLine = (id, ico) => {
+    const m = daily[id];
+    return m?.done
+      ? `${ico} ${id.charAt(0).toUpperCase()+id.slice(1)}: ✅ ${m.rating}`
+      : `${ico} ${id.charAt(0).toUpperCase()+id.slice(1)}: ⏳ Pendiente`;
+  };
 
-  const msg = `🌿 *Sinergia · Reporte del Día*
-👤 ${S.name}
-📅 ${fmtDate(key)}
-🔥 Racha: ${streak} día${streak !== 1 ? 's' : ''}
+  const msg =
+`🌿 *MI DÍA SINERGIA*
 
-${mealLines}
+👤 ${S.name} · ${dayName}
+🔥 Racha: ${streak} día${streak!==1?'s':''}
 
-📊 Avance: ${pct}% completado
-${pct === 100 ? '🏆 ¡Día perfecto!' : pct >= 67 ? '💪 ¡Casi lo logras!' : pct >= 33 ? '🌱 Buen comienzo' : '💡 Empieza tu racha hoy'}
+${mealLine('desayuno','🌅')}
+${mealLine('almuerzo','☀️')}
+${mealLine('cena','🌙')}
+
+📊 Completado: ${pct}%
+💧 Agua: ${agua}L de ${S.water}L meta
 
 _Sinergia En Movimiento · @sinergiamov_`;
 
-  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
 
 function copyPlan() {
@@ -1854,134 +1851,32 @@ Ayuno: ${S.fast}
 
 /* ── PRINT v3.6 — MENSAJE DINÁMICO ── */
 function printPlan() {
-  const key = todayKey();
+  const key   = todayKey();
   const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const done = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-  const pct  = Math.round((done / 3) * 100);
+  const done  = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
+  const pct   = Math.round((done / 3) * 100);
+  const d     = new Date(key + 'T12:00:00');
+  const fecha = d.toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long' });
   let msg = '';
-  if (pct === 100)      msg = '🏆 ¡Día perfecto! Tu metabolismo lo nota.';
-  else if (pct >= 67)   msg = '💪 ¡Casi! Solo falta registrar la cena.';
-  else if (pct >= 33)   msg = '🌱 Buen comienzo. Registra almuerzo y cena.';
-  else                  msg = '💡 Hoy es un buen día para empezar tu racha.';
+  if (pct === 100)    msg = '🏆 ¡Día perfecto! Lo lograste. Tu metabolismo lo nota.';
+  else if (pct >= 67) msg = '💪 ¡Casi! Solo falta registrar la cena para completar tu día.';
+  else if (pct >= 33) msg = '🌱 Buen comienzo. Recuerda registrar almuerzo y cena.';
+  else                msg = '💡 Hoy es un buen día para empezar tu racha Sinergia.';
   const el = document.getElementById('print-msg');
-  if (el) el.innerHTML = `${msg}<br><span style="font-size:12px;opacity:.8">
-    Plan de ${S.name} · ${S.kcal} kcal · Proteína: ${S.prot}g · @sinergiamov</span>`;
+  if (el) el.innerHTML = `
+    <div style="font-size:18px;margin-bottom:8px">${msg}</div>
+    <div style="font-size:13px;opacity:.85">${S.name} · ${fecha}</div>
+    <div style="font-size:12px;opacity:.7;margin-top:4px">
+      ${done}/3 comidas registradas · Racha: ${getStreak()} días · @sinergiamov
+    </div>`;
   setTimeout(() => window.print(), 200);
 }
-
 /* ══════════════════════════════════════════════════════
    MÓDULO DIARIO v3.6 — Registro inline en S13
 ══════════════════════════════════════════════════════ */
 
-function renderDailyModule() {
-  renderDayHeader();
-  renderDailyMeals();
-  renderStreak();
-}
-
-function renderDayHeader() {
-  const wrap = document.getElementById('day-header-wrap');
-  if (!wrap) return;
-  const key = todayKey();
-  const d = new Date(key + 'T12:00:00');
-  const dayName = d.toLocaleDateString('es-CO', { weekday:'long' });
-  const dateStr = d.toLocaleDateString('es-CO', { day:'numeric', month:'long' });
-  const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const done  = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-  const pct   = Math.round((done / 3) * 100);
-  wrap.innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(26,62,92,.8),rgba(18,122,110,.7));
-      border:1px solid rgba(26,158,143,.3);border-radius:16px;padding:16px;margin-bottom:14px;
-      display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:3px;text-transform:capitalize">
-          ${dayName}
-        </div>
-        <div style="font-size:11px;color:rgba(255,255,255,.65)">${dateStr}</div>
-        <div style="margin-top:8px;height:6px;width:140px;background:rgba(255,255,255,.15);
-          border-radius:3px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#1a9e8f,#00c6ff);
-            border-radius:3px;transition:width .5s"></div>
-        </div>
-        <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px">${pct}% completado</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:30px;font-weight:900;color:#1a9e8f">${done}/3</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.5)">comidas</div>
-      </div>
-    </div>`;
-}
 
 /* ── RENDER DAILY MEALS v3.6 — Panel inline ── */
-function renderDailyMeals() {
-  const wrap = document.getElementById('daily-meals-wrap');
-  if (!wrap) return;
-  const key   = todayKey();
-  const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const meals = [
-    { id:'desayuno', ico:'🌅', name:'Desayuno',  time:'7:00 – 9:00 AM'  },
-    { id:'almuerzo', ico:'☀️', name:'Almuerzo',  time:'12:00 – 2:00 PM' },
-    { id:'cena',     ico:'🌙', name:'Cena',      time:'6:00 – 7:30 PM'  },
-  ];
-  const plan = S.kcal ? S : null;
-  wrap.innerHTML = meals.map(m => {
-    const d = daily[m.id];
-    const isDone = d?.done;
-    const mainFood = plan ? dayRotate(MEAL_PLANS[m.id].mains) : null;
-    return `
-      <div class="daily-meal-card${isDone ? ' done' : ''}" id="dmc-${m.id}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-          <div class="dmc-left">
-            <span class="dmc-ico">${m.ico}</span>
-            <div class="dmc-txt">
-              <strong>${m.name}</strong>
-              <span>${m.time}</span>
-              ${mainFood ? `<span style="font-size:.7rem;color:#1a9e8f;margin-top:2px;display:block">
-                ${mainFood.ico} ${mainFood.name}</span>` : ''}
-            </div>
-          </div>
-          <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
-            background:${isDone ? 'rgba(46,204,113,.15)' : 'rgba(26,158,143,.15)'};
-            color:${isDone ? '#2ecc71' : '#1a9e8f'}">
-            ${isDone ? '✅ Listo' : '⏳ Pendiente'}
-          </span>
-        </div>
-        ${isDone ? `
-          <div style="font-size:12px;color:rgba(255,255,255,.6);background:rgba(46,204,113,.06);
-            border-radius:8px;padding:8px 10px">
-            ⭐ ${d.rating || '—'} · ${d.notes ? d.notes.substring(0,60) : 'Sin notas'}
-          </div>` : `
-          <button onclick="toggleRegPanel('${m.id}')"
-            style="width:100%;padding:10px;background:rgba(26,158,143,.12);
-            border:1px solid rgba(26,158,143,.3);border-radius:8px;color:#1a9e8f;
-            font-size:13px;font-weight:700;cursor:pointer;text-align:center">
-            ✏️ Registrar ${m.name}
-          </button>`}
-        <!-- Panel inline de registro -->
-        <div class="reg-panel" id="reg-panel-${m.id}">
-          <div class="reg-panel-title">✏️ ¿Cómo fue tu ${m.name}?</div>
-          <div class="reg-ref">
-            ${mainFood ? `<strong>${mainFood.ico} ${mainFood.name}</strong><br>
-            <span style="font-size:11px">${mainFood.note}</span>` : `<strong>${m.name}</strong>`}
-          </div>
-          <div style="font-size:11px;color:rgba(255,255,255,.6);margin-bottom:8px">¿Cómo te sentiste?</div>
-          <div class="rating-row">
-            <button class="rating-btn-inline" onclick="selectRating('${m.id}','😞 Mal',this)">😞<br>Mal</button>
-            <button class="rating-btn-inline" onclick="selectRating('${m.id}','😐 Regular',this)">😐<br>Regular</button>
-            <button class="rating-btn-inline" onclick="selectRating('${m.id}','😊 Bien',this)">😊<br>Bien</button>
-            <button class="rating-btn-inline" onclick="selectRating('${m.id}','🤩 Excelente',this)">🤩<br>Excelente</button>
-          </div>
-          <textarea id="notes-${m.id}" placeholder="Notas opcionales (ej: comí menos, añadí aguacate...)"
-            style="width:100%;padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
-            border-radius:8px;color:#fff;font-size:12px;resize:none;height:64px;margin-bottom:10px;
-            font-family:inherit;outline:none"></textarea>
-          <button class="reg-confirm-btn" onclick="confirmMeal('${m.id}')">
-            ✅ Confirmar ${m.name}
-          </button>
-        </div>
-      </div>`;
-  }).join('');
-}
 
 function toggleRegPanel(mealId) {
   /* Cierra todos los otros paneles primero */
@@ -2003,26 +1898,67 @@ function selectRating(mealId, val, btn) {
   btn.classList.add('sel');
 }
 
-function confirmMeal(mealId) {
-  const key   = todayKey();
+/* ── RENDER ESTADO REGISTRO EN CADA TAB v3.7 ── */
+function renderMealRegisters() {
+  const key = todayKey();
   const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const notes = document.getElementById('notes-' + mealId)?.value?.trim() || '';
+  ['desayuno','almuerzo','cena'].forEach(mealKey => {
+    const d       = daily[mealKey];
+    const statusEl = document.getElementById('reg-status-' + mealKey);
+    const panel    = document.getElementById('reg-panel-'  + mealKey);
+    const refEl    = document.getElementById('reg-ref-food-' + mealKey);
+    if (!statusEl) return;
+    const mainFood = dayRotate(MEAL_PLANS[mealKey].mains);
+    if (refEl) refEl.textContent = mainFood ? `${mainFood.ico} ${mainFood.name}` : '';
+    if (d?.done) {
+      statusEl.innerHTML = `
+        <div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);
+          border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <span style="font-size:1.4rem">✅</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:700;color:#2ecc71">Registrado · ${d.time}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.6)">${d.rating}${d.notes ? ' · ' + d.notes.substring(0,50) : ''}</div>
+          </div>
+        </div>`;
+      if (panel) panel.classList.remove('open');
+    } else {
+      statusEl.innerHTML = `
+        <button onclick="toggleRegPanel('${mealKey}')"
+          style="width:100%;padding:11px;background:rgba(26,158,143,.12);
+          border:1px solid rgba(26,158,143,.3);border-radius:8px;color:#1a9e8f;
+          font-size:13px;font-weight:700;cursor:pointer;text-align:center;margin-bottom:4px">
+          ✏️ Registrar ${MEAL_PLANS[mealKey].name}
+        </button>`;
+    }
+  });
+}
+
+function confirmMeal(mealId) {
+  const key    = todayKey();
+  const daily  = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
+  const notes  = document.getElementById('notes-' + mealId)?.value?.trim() || '';
   const rating = _ratings[mealId] || '😊 Bien';
 
-  daily[mealId] = { done: true, rating, notes, time: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) };
+  daily[mealId] = { done:true, rating, notes,
+    time: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) };
   localStorage.setItem('sinergia_daily_' + key, JSON.stringify(daily));
 
-  /* Feedback visual */
+  /* ── Suma automática al tracker ── */
+  const tKey = 'sinergia_trackers_' + key;
+  const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
+  tr.prot  = Math.round(((tr.prot  || 0) + Math.round(S.prot  / 3)) * 100) / 100;
+  tr.carb  = Math.round(((tr.carb  || 0) + Math.round(S.carb  / 3)) * 100) / 100;
+  tr.water = Math.round(((tr.water || 0) + Math.round((S.water / 3) * 100) / 100) * 100) / 100;
+  localStorage.setItem(tKey, JSON.stringify(tr));
+
   showToast(`✅ ${mealId.charAt(0).toUpperCase()+mealId.slice(1)} registrado · ${rating}`);
 
-  /* Verificar si las 3 comidas están completas → sumar racha */
   const done = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
   if (done === 3) {
     saveStreakDay(key);
-    setTimeout(() => showToast('🔥 ¡Día completo! Racha actualizada', 3000), 1000);
+    setTimeout(() => showToast('🔥 ¡Día completo! Racha actualizada 🏆', 3000), 1000);
   }
 
-  /* Abrir siguiente comida automáticamente */
   const order = ['desayuno','almuerzo','cena'];
   const idx   = order.indexOf(mealId);
   const next  = order[idx + 1];
@@ -2030,8 +1966,7 @@ function confirmMeal(mealId) {
     setTimeout(() => toggleRegPanel(next), 600);
   }
 
-  /* Re-render */
-  renderDailyModule();
+  renderMealRegisters(); /* ← ahora sí existe */
 }
 
 /* ── RACHA ── */
@@ -2085,61 +2020,6 @@ function renderStreak() {
     </div>`;
 }
 
-/* ── RESUMEN DEL DÍA (S14) ── */
-function renderDaySummary() {
-  const wrap  = document.getElementById('day-summary-wrap');
-  if (!wrap) return;
-  const key   = todayKey();
-  const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const meals = ['desayuno','almuerzo','cena'];
-  const mealIcos = { desayuno:'🌅', almuerzo:'☀️', cena:'🌙' };
-  const done  = meals.filter(m => daily[m]?.done).length;
-  const pct   = Math.round((done / 3) * 100);
-  const streak = getStreak();
-
-  let feedbackMsg = '';
-  let feedbackColor = '#1a9e8f';
-  if (pct === 100)    { feedbackMsg = '🏆 ¡Día perfecto! Tu metabolismo lo nota.'; feedbackColor = '#2ecc71'; }
-  else if (pct >= 67) { feedbackMsg = '💪 ¡Casi! Mañana completas las 3 comidas.'; feedbackColor = '#f0a500'; }
-  else if (pct >= 33) { feedbackMsg = '🌱 Buen comienzo. Cada registro cuenta.';   feedbackColor = '#00c6ff'; }
-  else                { feedbackMsg = '💡 Mañana es un nuevo día. ¡Tú puedes!';    feedbackColor = '#e05252'; }
-
-  wrap.innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(26,62,92,.8),rgba(18,122,110,.7));
-      border:1px solid rgba(26,158,143,.3);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center">
-      <div style="font-size:40px;font-weight:900;color:#fff">${pct}%</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:4px">${done} de 3 comidas registradas</div>
-      <div style="margin:12px 0;height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#1a9e8f,#00c6ff);
-          border-radius:4px;transition:width .6s"></div>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:${feedbackColor};margin-top:8px">${feedbackMsg}</div>
-    </div>
-    <div style="margin-bottom:14px">
-      ${meals.map(m => {
-        const d = daily[m];
-        return `
-          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;
-            background:${d?.done ? 'rgba(46,204,113,.08)' : 'rgba(255,255,255,.04)'};
-            border:1px solid ${d?.done ? 'rgba(46,204,113,.3)' : 'rgba(255,255,255,.08)'};
-            border-radius:10px;margin-bottom:8px">
-            <span style="font-size:1.4rem">${mealIcos[m]}</span>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:700;color:#fff;text-transform:capitalize">${m}</div>
-              ${d?.done
-                ? `<div style="font-size:11px;color:rgba(255,255,255,.6)">${d.rating} · ${d.time}${d.notes ? ' · ' + d.notes.substring(0,40) : ''}</div>`
-                : `<div style="font-size:11px;color:rgba(255,255,255,.4)">No registrado</div>`}
-            </div>
-            <span style="font-size:16px">${d?.done ? '✅' : '⭕'}</span>
-          </div>`;
-      }).join('')}
-    </div>
-    <div style="background:rgba(240,165,0,.12);border:1px solid rgba(240,165,0,.3);
-      border-radius:12px;padding:14px;text-align:center">
-      <div style="font-size:28px;font-weight:900;color:#f0a500">${streak} 🔥</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">días de racha</div>
-    </div>`;
-}
 
 /* ── HISTORIAL (S15) ── */
 function renderHistory() {
