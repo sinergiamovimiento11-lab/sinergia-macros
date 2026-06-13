@@ -509,16 +509,6 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
 
 const CODES = ['MACROS-JUN26','SINERGIA-JUN26','NUTRI-JUN26'];
 
-const ALLOWED_NAMES = [
-  'cristian aristizabal','jhonatan urrego','jhon fredy',
-  'darwin zuluaga','sara gomez','geovany','gabriel gomez',
-  'alejandra aristizabal','juanfer botero','carolina duque',
-  'leidy salazar','alexandra garcia','daniel henao',
-  'cesar gomez','elizabeth','juan camilo','margarita',
-  'yesse','esteban botero','juan andres','juan andres zuluaga',
-  'marcela','cathe','cathe nutricionista'
-];
-
 
 function normalizeName(str) {
   return str.trim().toLowerCase()
@@ -1014,22 +1004,11 @@ function checkAccess() {
   if (!CODES.includes(code)) {
     err.textContent = '❌ Código incorrecto. Contacta a Juan Andrés @sinergiamov'; return;
   }
-  const nameNorm = normalizeName(nameRaw);
-  const isAllowed = ALLOWED_NAMES.some(n => {
-    const nNorm = normalizeName(n);
-    return nNorm === nameNorm ||
-           nameNorm.startsWith(nNorm) ||
-           nNorm.startsWith(nameNorm) ||
-           nameNorm.includes(nNorm) ||
-           nNorm.includes(nameNorm);
-  });
-  if (!isAllowed) {
-    err.textContent = '❌ Nombre no autorizado. Contacta a Juan Andrés @sinergiamov'; return;
-  }
   err.textContent = '';
   S.name = nameRaw;
   document.getElementById('s9-greeting').textContent =
     `Hola ${nameRaw.split(' ')[0]} 👋 · Tu plan hormonal personalizado`;
+  const nameNorm = normalizeName(nameRaw);
   const saved = localStorage.getItem('sinergia_plan');
   if (saved) {
     try {
