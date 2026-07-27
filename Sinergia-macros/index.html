@@ -397,6 +397,7 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
   <div class="si">
     <div class="sh2"><h1>⏱️ Protocolo de Ayuno</h1><p>El ayuno no es restricción — es tiempo para que tu cuerpo se repare</p></div>
     <div id="fast-list"></div>
+<div id="fast-warning-select-wrap"></div>
   </div>
 </div>
 
@@ -438,6 +439,7 @@ font-weight:700;z-index:9000;opacity:0;transition:opacity .3s;pointer-events:non
       <h1>🍽️ Mis Comidas de Hoy</h1>
       <p id="s10-window-msg" style="font-size:12px;color:rgba(255,255,255,.7);margin-top:4px"></p>
     </div>
+<div id="fast-warning-wrap"></div>
     <div class="meal-tabs">
       <button class="meal-tab active" id="tab-btn-0" onclick="switchMealTab(0)"><span>🌅</span>Desayuno</button>
       <button class="meal-tab" id="tab-btn-1" onclick="switchMealTab(1)"><span>☀️</span>Almuerzo</button>
@@ -981,13 +983,18 @@ function updateProgress() {
 
 function buildDots() {
   const wrap = document.getElementById('dots');
-  for (let i = 0; i < 13; i++) {
+  if (!wrap) return;
+
+  wrap.innerHTML = '';
+
+  for (let i = 0; i < TOTAL; i++) {
     const d = document.createElement('div');
     d.className = 'dot' + (i === 0 ? ' act' : '');
     d.id = 'dot-' + i;
     wrap.appendChild(d);
   }
 }
+
 
 function updateDots() {
   document.querySelectorAll('.dot').forEach((d, i) => {
@@ -1000,28 +1007,49 @@ function checkAccess() {
   const nameRaw = document.getElementById('inp-name').value.trim();
   const code    = document.getElementById('inp-code').value.trim().toUpperCase();
   const err     = document.getElementById('acc-err');
-  if (!nameRaw) { err.textContent = 'Escribe tu nombre para continuar'; return; }
-  if (!CODES.includes(code)) {
-    err.textContent = '❌ Código incorrecto. Contacta a Juan Andrés @sinergiamov'; return;
+
+  if (!nameRaw) {
+    err.textContent = 'Escribe tu nombre para personalizar tu experiencia';
+    return;
   }
+
+  if (!CODES.includes(code)) {
+    err.textContent = '❌ Código incorrecto. Contacta a Juan Andrés @sinergiamov';
+    return;
+  }
+
   err.textContent = '';
+
+  // El nombre NO valida acceso. Solo personaliza la experiencia.
   S.name = nameRaw;
-  document.getElementById('s9-greeting').textContent =
-    `Hola ${nameRaw.split(' ')[0]} 👋 · Tu plan hormonal personalizado`;
+
+  const gr = document.getElementById('s9-greeting');
+  if (gr) {
+    gr.textContent = `Hola ${nameRaw.split(' ')[0]} 👋 · Tu plan hormonal personalizado`;
+  }
+
   const nameNorm = normalizeName(nameRaw);
   const saved = localStorage.getItem('sinergia_plan');
+
   if (saved) {
     try {
       const p = JSON.parse(saved);
-      if (p.name && normalizeName(p.name) === nameNorm) {
+
+      // Solo carga plan previo si corresponde al mismo nombre.
+      // Si es otro nombre, deja crear un nuevo perfil.
+      if (p.name && normalizeName(p.name) === nameNorm && p.kcal) {
         Object.assign(S, p);
         showToast('✅ Plan cargado · ' + p.name);
-        goTo(9); return;
+        goTo(9);
+        return;
       }
     } catch(e) {}
   }
+
+  showToast('✅ Acceso permitido · Bienvenido/a ' + nameRaw.split(' ')[0]);
   goTo(1);
 }
+
 
 /* ── VALIDACIÓN PERFIL ── */
 function validateProfile() {
@@ -1144,10 +1172,18 @@ function toggleCondition(id) {
 
 function setFast(id) {
   S.fast = id;
+
   document.querySelectorAll('.fast-item[data-fast]').forEach(el => {
     el.classList.toggle('sel', el.dataset.fast === id);
   });
+
+  const warnSelect = document.getElementById('fast-warning-select-wrap');
+  if (warnSelect) warnSelect.innerHTML = getFastingWarning();
+
+  const warnMeals = document.getElementById('fast-warning-wrap');
+  if (warnMeals) warnMeals.innerHTML = getFastingWarning();
 }
+
 
 /* ── BUILDERS ── */
 function buildPrinciples() {
@@ -1326,24 +1362,19 @@ function fmtDate(dateStr) {
 function loadSavedPlan() {
   const saved = localStorage.getItem('sinergia_plan');
   if (!saved) return;
+
   try {
     const p = JSON.parse(saved);
-    if (p && p.kcal && p.name) {
-      Object.assign(S, p);
-      /* Pre-llenar el campo nombre en S0 */
+
+    if (p && p.name) {
       const inp = document.getElementById('inp-name');
       if (inp) inp.value = p.name;
-      /* Actualizar greeting */
-      const gr = document.getElementById('s9-greeting');
-      if (gr) gr.textContent = `Hola ${p.name.split(' ')[0]} 👋 · Tu plan hormonal personalizado`;
-      /* Redirigir directo a resultados */
-      setTimeout(() => {
-        showToast('✅ Bienvenido de nuevo, ' + p.name.split(' ')[0] + ' 👋');
-        goTo(9);
-      }, 1600);
+
+      showToast('👋 Nombre recordado · ingresa tu código para continuar');
     }
   } catch(e) {}
 }
+
 </script>
 <script>
 /* ══════════════════════════════════════════════════════
@@ -1360,7 +1391,8 @@ function loadSavedPlan() {
 function calcPlan() {
   const act  = ACTIVITIES.find(a => a.id === S.activity) || ACTIVITIES[2];
   const goal = GOALS.find(g => g.id === S.goal) || GOALS[2];
-  const cond = S.conditions.includes('diabetes') || S.conditions.includes('sop') || S.conditions.includes('glucose');
+  const cond = S.conditions.includes('diabetes') || S.conditions.includes('sop') || S.goal === 'glucose';
+
 
   let tmb = S.sex === 'm'
     ? 10 * S.weight + 6.25 * S.height - 5 * S.age + 5
@@ -1395,91 +1427,217 @@ function renderResults() {
   renderWater();
 }
 
+function getFemaleCarbNotice() {
+  const isFemale = S.sex === 'f';
+  const activeLevels = ['moderate', 'active', 'athlete'];
+  const isActive = activeLevels.includes(S.activity);
+
+  if (!isFemale || !isActive || !S.weight || !S.carb) return '';
+
+  const carbPerKg = S.carb / S.weight;
+  const carbPerKgRounded = Math.round(carbPerKg * 10) / 10;
+
+  if (carbPerKg >= 3) return '';
+
+  return `
+    <div style="
+      background:rgba(224,90,154,.12);
+      border:1px solid rgba(224,90,154,.35);
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:14px;
+      color:#fff;
+      line-height:1.6;
+      font-size:12px">
+      <div style="font-size:14px;font-weight:800;color:#e05a9a;margin-bottom:6px">
+        🌸 Nota importante para mujeres activas
+      </div>
+      <div>
+        Tu plan actual estima aproximadamente 
+        <strong style="color:#fff">${carbPerKgRounded}g de carbohidrato/kg/día</strong>.
+        En mujeres físicamente activas, una ingesta energética o de carbohidratos demasiado baja
+        puede afectar la recuperación, el ciclo menstrual, el rendimiento y la salud hormonal.
+      </div>
+      <div style="margin-top:8px;color:rgba(255,255,255,.75)">
+        Esta app entrega una guía general. Si entrenas con frecuencia, tienes alteraciones del ciclo,
+        fatiga persistente, bajo rendimiento o historial hormonal, valida tu plan con una nutricionista.
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.55)">
+        Referencias: disponibilidad energética en mujeres activas, RED-S, ACSM, Mountjoy, Loucks.
+      </div>
+    </div>
+  `;
+}
+
 /* ── HERO ── */
 function renderHero() {
   const wrap = document.getElementById('hero-wrap');
   if (!wrap) return;
+
   const goal = GOALS.find(g => g.id === S.goal) || GOALS[2];
-  const protPerMeal = Math.round(S.prot / 3);
+  const femaleNotice = getFemaleCarbNotice();
+
   wrap.innerHTML = `
+    ${femaleNotice}
+
     <div style="background:linear-gradient(135deg,rgba(26,62,92,.9),rgba(18,122,110,.85));
-      border:1px solid rgba(26,158,143,.3);border-radius:16px;padding:22px;margin-bottom:14px;text-align:center;color:#fff">
-      <div style="font-size:52px;font-weight:900;line-height:1;color:#fff">${S.kcal}</div>
-      <div style="font-size:13px;opacity:.8;margin-top:4px">kcal · meta diaria Sinergia</div>
+      border:1px solid rgba(26,158,143,.3);
+      border-radius:16px;
+      padding:22px;
+      margin-bottom:14px;
+      text-align:center;
+      color:#fff">
+
+      <div style="font-size:52px;font-weight:900;line-height:1;color:#fff">
+        ${S.kcal}
+      </div>
+
+      <div style="font-size:13px;opacity:.8;margin-top:4px">
+        kcal · meta diaria Sinergia
+      </div>
+
       <div style="font-size:11px;color:#f0a500;background:rgba(240,165,0,.12);border-radius:6px;
-        padding:5px 12px;display:inline-block;margin:8px 0">${goal.ico} ${goal.name}</div>
+        padding:5px 12px;display:inline-block;margin:8px 0">
+        ${goal.ico} ${goal.name}
+      </div>
+
       <div style="font-size:11px;color:rgba(255,255,255,.75);line-height:1.6;margin:10px 0;
         padding:10px;background:rgba(255,255,255,.06);border-radius:10px">
         🧬 <em>"La proteína activa el glucagón — la hormona opuesta a la insulina.
         Come proteína en cada comida."</em><br>
         <span style="opacity:.6;font-size:10px">— Dr. Jaramillo</span>
       </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:16px">
         <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:12px 8px;text-align:center">
           <div style="font-size:24px;font-weight:800;color:#1a9e8f">${S.prot}g</div>
-          <div style="font-size:10px;opacity:.8;margin-top:2px">Proteína</div>
+          <div style="font-size:10px;opacity:.8;margin-top:2px">Proteína diaria</div>
         </div>
+
         <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:12px 8px;text-align:center">
           <div style="font-size:24px;font-weight:800;color:#f0a500">${S.fat_g}g</div>
-          <div style="font-size:10px;opacity:.8;margin-top:2px">Grasa</div>
+          <div style="font-size:10px;opacity:.8;margin-top:2px">Grasa diaria</div>
         </div>
+
         <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:12px 8px;text-align:center">
           <div style="font-size:24px;font-weight:800;color:#e05a9a">${S.carb}g</div>
-          <div style="font-size:10px;opacity:.8;margin-top:2px">Carbos</div>
+          <div style="font-size:10px;opacity:.8;margin-top:2px">Carbos diarios</div>
         </div>
       </div>
     </div>`;
 }
 
+
 /* ── DETAIL ── */
 function renderDetail() {
   const wrap = document.getElementById('detail-wrap');
   if (!wrap) return;
+
   const hm  = S.height / 100;
   const imc = Math.round((S.weight / (hm * hm)) * 10) / 10;
   const imcLabel = imc < 18.5 ? 'Bajo peso' : imc < 25 ? 'Normal' : imc < 30 ? 'Sobrepeso' : 'Obesidad';
   const imcColor = imc < 18.5 ? '#00c6ff' : imc < 25 ? '#2ecc71' : imc < 30 ? '#f0a500' : '#e05252';
-  const protPerMeal = Math.round(S.prot / 3);
-  const eggsEq  = Math.round(protPerMeal / 6);
-  const chickenEq = Math.round(protPerMeal / 0.31);
-  const cottageEq = Math.round(protPerMeal / 0.12);
+
+  const macros = getMacrosPerMeal();
+
   wrap.innerHTML = `
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <span style="font-size:13px;font-weight:700;color:#fff">📊 IMC</span>
-        <span style="font-size:18px;font-weight:900;color:${imcColor}">${imc} <span style="font-size:11px">${imcLabel}</span></span>
+        <span style="font-size:18px;font-weight:900;color:${imcColor}">
+          ${imc} <span style="font-size:11px">${imcLabel}</span>
+        </span>
       </div>
+
       <div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:14px">
         TMB: <strong style="color:#fff">${S.tmb} kcal</strong> ·
         TDEE: <strong style="color:#fff">${S.tdee} kcal</strong>
       </div>
+
+      <div style="
+        background:rgba(0,198,255,.08);
+        border:1px solid rgba(0,198,255,.22);
+        border-radius:12px;
+        padding:12px;
+        margin-bottom:14px;
+        font-size:12px;
+        color:rgba(255,255,255,.78);
+        line-height:1.6">
+        <strong style="color:#00c6ff">⏱️ Distribución según tu ayuno</strong><br>
+        Tu protocolo <strong style="color:#fff">${S.fast}</strong> distribuye tus requerimientos diarios en
+        <strong style="color:#fff">${macros.count} ingesta${macros.count !== 1 ? 's' : ''}</strong>.
+        <br>
+        <span style="color:rgba(255,255,255,.65)">
+          Menos comidas no significa comer menos: significa repartir tus macros diarios en menos momentos.
+        </span>
+      </div>
+
       <div style="font-size:11px;font-weight:700;color:#1a9e8f;text-transform:uppercase;
-        letter-spacing:.5px;margin-bottom:8px">🥩 Proteína por comida (~${protPerMeal}g)</div>
+        letter-spacing:.5px;margin-bottom:8px">
+        🥩 Macros aproximados por ingesta
+      </div>
+
+      <div class="macro-row">
+        <div class="macro-pill" style="border-color:#1a9e8f;background:rgba(26,158,143,.08)">
+          <span class="mp-val" style="color:#1a9e8f">${macros.prot}g</span>
+          <span class="mp-lbl">Proteína</span>
+        </div>
+        <div class="macro-pill" style="border-color:#f0a500;background:rgba(240,165,0,.08)">
+          <span class="mp-val" style="color:#f0a500">${macros.fat}g</span>
+          <span class="mp-lbl">Grasa</span>
+        </div>
+        <div class="macro-pill" style="border-color:#e05a9a;background:rgba(224,90,154,.08)">
+          <span class="mp-val" style="color:#e05a9a">${macros.carb}g</span>
+          <span class="mp-lbl">Carbos</span>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;margin:10px 0 14px">
+        Estos valores son una guía por comida según el número de ingestas seleccionadas. Prioriza alimentos reales,
+        proteína suficiente y buena digestión.
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#1a9e8f;text-transform:uppercase;
+        letter-spacing:.5px;margin-bottom:8px">
+        🍽️ Ejemplos prácticos de proteína
+      </div>
+
       <div class="prot-equiv-row">
         <div class="pe-item">
           <span class="pe-ico">🥚</span>
           <div class="pe-txt">
-            <strong>${eggsEq} huevos enteros</strong>
-            <span>Desayuno · Yema esencial · Colina + vitamina D</span>
+            <strong>2–3 huevos enteros + complemento proteico</strong>
+            <span>Puede combinarse con yogur griego, cottage, atún, pollo o semillas según necesidad.</span>
           </div>
         </div>
+
         <div class="pe-item">
           <span class="pe-ico">🍗</span>
           <div class="pe-txt">
-            <strong>${chickenEq}g pechuga de pollo</strong>
-            <span>Almuerzo · Proteína magra · Alta biodisponibilidad</span>
+            <strong>100–150g de pollo, pescado o carne magra</strong>
+            <span>Opción práctica como fuente principal de proteína de alta biodisponibilidad.</span>
           </div>
         </div>
+
         <div class="pe-item">
-          <span class="pe-ico">🧀</span>
+          <span class="pe-ico">🐟</span>
           <div class="pe-txt">
-            <strong>${cottageEq}g queso cottage</strong>
-            <span>Cena · Caseína lenta · Ideal para dormir</span>
+            <strong>Pescado, atún, sardinas o trucha</strong>
+            <span>Buenas opciones para variar proteína y aportar omega-3 o minerales.</span>
+          </div>
+        </div>
+
+        <div class="pe-item">
+          <span class="pe-ico">🥛</span>
+          <div class="pe-txt">
+            <strong>Yogur griego o cottage como complemento</strong>
+            <span>No tienen que ser la única fuente de proteína. Úsalos para completar, no para forzar grandes cantidades.</span>
           </div>
         </div>
       </div>
     </div>`;
 }
+
 
 /* ── AGUA ── */
 function renderWater() {
@@ -1502,16 +1660,194 @@ function renderWater() {
     </div>`;
 }
 
+function getVisibleMealsByFast() {
+  if (S.fast === '18/6') return ['almuerzo','cena'];
+  if (S.fast === 'omad') return ['almuerzo'];
+  return ['desayuno','almuerzo','cena'];
+}
+
+function getMealCountByFast() {
+  return getVisibleMealsByFast().length;
+}
+
+function getMacrosPerMeal() {
+  const count = getMealCountByFast();
+
+  return {
+    count,
+    kcal: Math.round(S.kcal / count),
+    prot: Math.round(S.prot / count),
+    fat: Math.round(S.fat_g / count),
+    carb: Math.round(S.carb / count)
+  };
+}
+
+function getFastMealMessage() {
+  const macros = getMacrosPerMeal();
+
+  if (S.fast === '14/10') {
+    return `Protocolo suave · ${macros.count} comidas dentro de una ventana de 10h.`;
+  }
+
+  if (S.fast === '16/8') {
+    return `Protocolo intermedio · ${macros.count} comidas dentro de una ventana de 8h. Puedes compactarlas según tu horario.`;
+  }
+
+  if (S.fast === '18/6') {
+    return `Protocolo avanzado · ${macros.count} comidas principales dentro de una ventana de 6h. Menos ingestas no significa comer menos: tus macros diarios se reparten en menos comidas.`;
+  }
+
+  if (S.fast === 'omad') {
+    return `OMAD · 1 comida principal. Este protocolo concentra todos tus requerimientos diarios en una sola ingesta y requiere supervisión.`;
+  }
+
+  return '';
+}
+
+function getFastingWarning() {
+  if (S.fast === '14/10') return '';
+
+  let level = 'Protocolo intermedio';
+  let color = '#f0a500';
+
+  if (S.fast === '18/6') {
+    level = 'Protocolo avanzado';
+    color = '#f0a500';
+  }
+
+  if (S.fast === 'omad') {
+    level = 'Protocolo muy avanzado';
+    color = '#e05252';
+  }
+
+  return `
+    <div class="card" style="
+      background:rgba(240,165,0,.10);
+      border:1px solid rgba(240,165,0,.35);
+      color:#fff;
+      line-height:1.6;
+      font-size:12px;
+      margin-bottom:12px">
+      <div style="font-size:14px;font-weight:800;color:${color};margin-bottom:6px">
+        ⚠️ ${level} · No apto para todos
+      </div>
+      <div>
+        Este tipo de ayuno debe hacerse de forma progresiva. No es recomendable iniciar de golpe,
+        especialmente si vienes de baja ingesta, dietas restrictivas, fatiga persistente,
+        alteraciones hormonales, diabetes, embarazo, lactancia, antecedentes de trastornos alimentarios
+        o entrenamiento intenso.
+      </div>
+      <div style="margin-top:8px;color:rgba(255,255,255,.75)">
+        Consulta con un médico, nutricionista o profesional de la salud antes de comenzar ayunos prolongados.
+      </div>
+    </div>
+  `;
+}
+
 /* ── RENDER COMIDAS ── */
 function renderMeals() {
   if (!S.kcal) calcPlan();
-  ['desayuno','almuerzo','cena'].forEach(key => {
-    const el = document.getElementById('meal-' + key);
-    if (el) el.innerHTML = renderOneMeal(key);
+
+  const visibleMeals = getVisibleMealsByFast();
+  const allMeals = ['desayuno','almuerzo','cena'];
+
+  allMeals.forEach((key, idx) => {
+    const tabBtn = document.getElementById('tab-btn-' + idx);
+    const tabContent = document.getElementById('tab-content-' + idx);
+    const mealEl = document.getElementById('meal-' + key);
+
+    const isVisible = visibleMeals.includes(key);
+
+    if (tabBtn) tabBtn.style.display = isVisible ? 'block' : 'none';
+    if (tabContent) {
+      tabContent.style.display = 'none';
+      tabContent.classList.remove('active');
+    }
+
+    if (mealEl) {
+      mealEl.innerHTML = isVisible ? renderOneMeal(key) : '';
+    }
   });
+
+  const firstVisible = visibleMeals[0];
+  const firstIndex = allMeals.indexOf(firstVisible);
+
+  if (firstIndex >= 0) {
+    const firstBtn = document.getElementById('tab-btn-' + firstIndex);
+    const firstContent = document.getElementById('tab-content-' + firstIndex);
+
+    document.querySelectorAll('.meal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.meal-tab-content').forEach(c => c.classList.remove('active'));
+
+    if (firstBtn) firstBtn.classList.add('active');
+    if (firstContent) {
+      firstContent.classList.add('active');
+      firstContent.style.display = 'block';
+    }
+  }
+
   const fast = FASTS.find(f => f.id === S.fast) || FASTS[1];
   const msg = document.getElementById('s10-window-msg');
-  if (msg) msg.textContent = `⏱️ Ventana: ${fast.eating}h comida · ${fast.fasting}h ayuno · ${fast.id}`;
+
+  if (msg) {
+    msg.innerHTML = `
+      <span>${getFastMealMessage()}</span>
+    `;
+  }
+const warn = document.getElementById('fast-warning-wrap');
+if (warn) warn.innerHTML = getFastingWarning();
+}
+
+
+function renderCarbSwaps(mealKey, carbSets) {
+  if (!carbSets || !carbSets.length) return '';
+
+  const swapHtml = carbSets.map((c,i) => `
+    <div class="swap-opt${i===0?' sel':''}" onclick="selectMacroSwap(this)">
+      <span style="font-size:1.2rem">${c.ico}</span>
+      <div>
+        <strong>${c.name}</strong>
+        <span>${c.qty} · ${c.desc}</span>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <button class="swap-toggle" onclick="const p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block'">
+      🔄 Ver intercambios 1:1 carbohidratos
+    </button>
+    <div class="swap-panel" style="display:none">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+        Elige una fuente de carbohidrato según entrenamiento, digestión y preferencia
+      </div>
+      ${swapHtml}
+    </div>
+  `;
+}
+function renderFatSwaps(mealKey, fats) {
+  if (!fats || !fats.length) return '';
+
+  const swapHtml = fats.map((f,i) => `
+    <div class="swap-opt${i===0?' sel':''}" onclick="selectMacroSwap(this)">
+      <span style="font-size:1.2rem">${f.ico}</span>
+      <div>
+        <strong>${f.name}</strong>
+        <span>${f.qty} · ${f.desc}</span>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <button class="swap-toggle" onclick="const p=this.nextElementSibling;p.style.display=p.style.display==='block'?'none':'block'">
+      🔄 Ver intercambios 1:1 grasas saludables
+    </button>
+    <div class="swap-panel" style="display:none">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">
+        Puedes cambiar la grasa sugerida por otra equivalente
+      </div>
+      ${swapHtml}
+    </div>
+  `;
 }
 
 function renderOneMeal(mealKey) {
@@ -1523,7 +1859,11 @@ function renderOneMeal(mealKey) {
   const drink  = dayRotate(plan.drinks);
   const fruit  = dayRotate(plan.fruits);
   const carb   = mealKey === 'almuerzo' ? dayRotate(plan.carbSets) : null;
-  const protPerMeal = Math.round(S.prot / 3);
+ const macros = getMacrosPerMeal();
+const protPerMeal = macros.prot;
+const carbSwapPanel = mealKey === 'almuerzo' ? renderCarbSwaps(mealKey, plan.carbSets) : '';
+const fatSwapPanel  = renderFatSwaps(mealKey, plan.fats);
+
 
   const avoidList = S.conditions
     .flatMap(id => CONDITIONS.find(c => c.id === id)?.avoid || [])
@@ -1595,12 +1935,24 @@ function renderOneMeal(mealKey) {
     </div>`;
 
   return `
-    <div class="macro-bar-mini">
-      <span>🔥 ${Math.round(S.kcal/3)} kcal</span>
-      <span style="color:#1a9e8f">🥩 ${protPerMeal}g prot</span>
-      <span style="color:#f0a500">🥑 ${Math.round(S.fat_g/3)}g grasa</span>
-      <span style="color:#e05a9a">🌾 ${Math.round(S.carb/3)}g carbos</span>
-    </div>
+   <div class="macro-bar-mini">
+  <span>🔥 ${macros.kcal} kcal</span>
+  <span style="color:#1a9e8f">🥩 ${macros.prot}g prot</span>
+  <span style="color:#f0a500">🥑 ${macros.fat}g grasa</span>
+  <span style="color:#e05a9a">🌾 ${macros.carb}g carbos</span>
+</div>
+<div style="
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;
+  padding:9px 11px;
+  margin-bottom:10px;
+  font-size:11px;
+  color:rgba(255,255,255,.65);
+  line-height:1.5">
+  ⏱️ Esta ingesta representa aproximadamente 1 de ${macros.count} comida${macros.count !== 1 ? 's' : ''} de tu día.
+</div>
+
     <div class="main-prot-block">
       <div class="mpb-header">
         <span class="mpb-ico">${main.ico}</span>
@@ -1623,14 +1975,16 @@ function renderOneMeal(mealKey) {
     <div class="comp-title">🥗 Acompañantes sugeridos</div>
     ${compHtml}
     <div style="height:8px"></div>
-    <div class="extra-block" style="background:rgba(240,165,0,.12);border-color:rgba(240,165,0,.3)">
-      <span class="eb-ico">${fat.ico}</span>
-      <div class="eb-txt">
-        <strong style="color:#f0a500">🥑 Grasa saludable · ${fat.name}</strong>
-        <span>${fat.qty} · ${fat.desc}</span>
-      </div>
-    </div>
-    ${carbHtml}
+   <div class="extra-block" style="background:rgba(240,165,0,.12);border-color:rgba(240,165,0,.3)">
+  <span class="eb-ico">${fat.ico}</span>
+  <div class="eb-txt">
+    <strong style="color:#f0a500">🥑 Grasa saludable · ${fat.name}</strong>
+    <span>${fat.qty} · ${fat.desc}</span>
+  </div>
+</div>
+${fatSwapPanel}
+${carbHtml}
+${carbSwapPanel}
     ${caldoHtml}
     ${psylliumHtml}
     ${drinkHtml}
@@ -1684,6 +2038,13 @@ function renderOneMeal(mealKey) {
         </button>
       </div>
     </div>`;
+}
+
+function selectMacroSwap(el) {
+  const panel = el.closest('.swap-panel');
+  if (!panel) return;
+  panel.querySelectorAll('.swap-opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
 }
 
 function selectSwap(mealKey, idx, el) {
@@ -1803,8 +2164,9 @@ function shareWhatsApp() {
   const streak = getStreak();
   const d = new Date(key + 'T12:00:00');
   const dayName = d.toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'short' });
-  const done = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-  const pct  = Math.round((done / 3) * 100);
+ const visibleMeals = getVisibleMealsByFast();
+const done = visibleMeals.filter(m => daily[m]?.done).length;
+const pct  = Math.round((done / visibleMeals.length) * 100);
   const tKey = 'sinergia_trackers_' + key;
   const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
   const agua = tr.water || 0;
@@ -1822,9 +2184,10 @@ function shareWhatsApp() {
 👤 ${S.name} · ${dayName}
 🔥 Racha: ${streak} día${streak!==1?'s':''}
 
-${mealLine('desayuno','🌅')}
-${mealLine('almuerzo','☀️')}
-${mealLine('cena','🌙')}
+${visibleMeals.map(m => {
+  const ico = m === 'desayuno' ? '🌅' : m === 'almuerzo' ? '☀️' : '🌙';
+  return mealLine(m, ico);
+}).join('\n')}
 
 📊 Completado: ${pct}%
 💧 Agua: ${agua}L de ${S.water}L meta
@@ -1850,21 +2213,30 @@ Ayuno: ${S.fast}
 function printPlan() {
   const key   = todayKey();
   const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  const done  = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-  const pct   = Math.round((done / 3) * 100);
+  const visibleMeals = getVisibleMealsByFast();
+const done  = visibleMeals.filter(m => daily[m]?.done).length;
+const pct   = Math.round((done / visibleMeals.length) * 100);
   const d     = new Date(key + 'T12:00:00');
   const fecha = d.toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long' });
   let msg = '';
-  if (pct === 100)    msg = '🏆 ¡Día perfecto! Lo lograste. Tu metabolismo lo nota.';
-  else if (pct >= 67) msg = '💪 ¡Casi! Solo falta registrar la cena para completar tu día.';
-  else if (pct >= 33) msg = '🌱 Buen comienzo. Recuerda registrar almuerzo y cena.';
-  else                msg = '💡 Hoy es un buen día para empezar tu racha Sinergia.';
+const totalMeals = visibleMeals.length;
+
+if (pct === 100) {
+  msg = '🏆 ¡Día perfecto! Lo lograste. Tu metabolismo lo nota.';
+} else if (totalMeals === 1) {
+  msg = '💡 Registra tu comida principal para completar tu día Sinergia.';
+} else if (pct >= 50) {
+  msg = '💪 ¡Casi! Solo falta registrar una ingesta para completar tu día.';
+} else {
+  msg = '🌱 Buen comienzo. Recuerda completar tus ingestas de hoy.';
+}
   const el = document.getElementById('print-msg');
   if (el) el.innerHTML = `
     <div style="font-size:18px;margin-bottom:8px">${msg}</div>
     <div style="font-size:13px;opacity:.85">${S.name} · ${fecha}</div>
     <div style="font-size:12px;opacity:.7;margin-top:4px">
-      ${done}/3 comidas registradas · Racha: ${getStreak()} días · @sinergiamov
+      ${done}/${visibleMeals.length} comidas registradas
+ · Racha: ${getStreak()} días · @sinergiamov
     </div>`;
   setTimeout(() => window.print(), 200);
 }
@@ -1899,14 +2271,30 @@ function selectRating(mealId, val, btn) {
 function renderMealRegisters() {
   const key = todayKey();
   const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-  ['desayuno','almuerzo','cena'].forEach(mealKey => {
-    const d       = daily[mealKey];
+  const visibleMeals = getVisibleMealsByFast();
+  const allMeals = ['desayuno','almuerzo','cena'];
+
+  allMeals.forEach(mealKey => {
+    if (!visibleMeals.includes(mealKey)) {
+      const statusEl = document.getElementById('reg-status-' + mealKey);
+      const panel    = document.getElementById('reg-panel-'  + mealKey);
+
+      if (statusEl) statusEl.innerHTML = '';
+      if (panel) panel.classList.remove('open');
+
+      return;
+    }
+
+    const d        = daily[mealKey];
     const statusEl = document.getElementById('reg-status-' + mealKey);
     const panel    = document.getElementById('reg-panel-'  + mealKey);
     const refEl    = document.getElementById('reg-ref-food-' + mealKey);
+
     if (!statusEl) return;
+
     const mainFood = dayRotate(MEAL_PLANS[mealKey].mains);
     if (refEl) refEl.textContent = mainFood ? `${mainFood.ico} ${mainFood.name}` : '';
+
     if (d?.done) {
       statusEl.innerHTML = `
         <div style="background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.3);
@@ -1914,10 +2302,14 @@ function renderMealRegisters() {
           <span style="font-size:1.4rem">✅</span>
           <div style="flex:1">
             <div style="font-size:13px;font-weight:700;color:#2ecc71">Registrado · ${d.time}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.6)">${d.rating}${d.notes ? ' · ' + d.notes.substring(0,50) : ''}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.6)">
+              ${d.rating}${d.notes ? ' · ' + d.notes.substring(0,50) : ''}
+            </div>
           </div>
         </div>`;
+
       if (panel) panel.classList.remove('open');
+
     } else {
       statusEl.innerHTML = `
         <button onclick="toggleRegPanel('${mealKey}')"
@@ -1943,9 +2335,10 @@ function confirmMeal(mealId) {
  /* ── Suma automática al tracker ── */
 const tKey = 'sinergia_trackers_' + key;
 const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
-const protPorComida  = Math.round(S.prot  / 3);
-const carbPorComida  = Math.round(S.carb  / 3);
-const aguaPorComida  = Math.round((S.water / 3) * 100) / 100;
+const macros = getMacrosPerMeal();
+const protPorComida  = macros.prot;
+const carbPorComida  = macros.carb;
+const aguaPorComida  = Math.round((S.water / macros.count) * 100) / 100;
 tr.prot  = Math.round(((tr.prot  || 0) + protPorComida)  * 100) / 100;
 tr.carb  = Math.round(((tr.carb  || 0) + carbPorComida)  * 100) / 100;
 tr.water = Math.round(((tr.water || 0) + aguaPorComida)  * 100) / 100;
@@ -1954,15 +2347,17 @@ localStorage.setItem(tKey, JSON.stringify(tr));
 
   showToast(`✅ ${mealId.charAt(0).toUpperCase()+mealId.slice(1)} registrado · ${rating}`);
 
-  const done = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-  if (done === 3) {
+  const visibleMeals = getVisibleMealsByFast();
+const done = visibleMeals.filter(m => daily[m]?.done).length;
+
+if (done === visibleMeals.length) {
     saveStreakDay(key);
     setTimeout(() => showToast('🔥 ¡Día completo! Racha actualizada 🏆', 3000), 1000);
   }
 
-  const order = ['desayuno','almuerzo','cena'];
-  const idx   = order.indexOf(mealId);
-  const next  = order[idx + 1];
+  const order = getVisibleMealsByFast();
+const idx   = order.indexOf(mealId);
+const next  = order[idx + 1];
   if (next && !daily[next]?.done) {
     setTimeout(() => toggleRegPanel(next), 600);
   }
@@ -2013,7 +2408,7 @@ function renderStreak() {
       </div>
       <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">
         ${streak === 0
-          ? 'Registra las 3 comidas de hoy para comenzar tu racha 💪'
+          ? `Registra ${getVisibleMealsByFast().length} comida${getVisibleMealsByFast().length !== 1 ? 's' : ''} de hoy para comenzar tu racha 💪`
           : streak < 7
           ? `¡Vas bien! ${7 - streak} día${7-streak!==1?'s':''} para la semana completa 🎯`
           : '¡Racha increíble! Sigue así — tu metabolismo lo nota 🏆'}
@@ -2035,8 +2430,9 @@ function renderHistory() {
   }
   const hist = days.map(key => {
     const daily = JSON.parse(localStorage.getItem('sinergia_daily_' + key) || '{}');
-    const done  = ['desayuno','almuerzo','cena'].filter(m => daily[m]?.done).length;
-    const pct   = Math.round((done / 3) * 100);
+    const visibleMeals = getVisibleMealsByFast();
+const done  = visibleMeals.filter(m => daily[m]?.done).length;
+const pct   = Math.round((done / visibleMeals.length) * 100);
     const color = pct === 100 ? '#2ecc71' : pct >= 67 ? '#1a9e8f' : pct >= 33 ? '#f0a500' : 'rgba(255,255,255,.2)';
     return { key, done, pct, color };
   });
@@ -2060,7 +2456,7 @@ function renderHistory() {
         <div style="height:100%;width:${d.pct}%;background:${d.color};border-radius:4px;transition:width .5s"></div>
       </div>
       <div style="font-size:12px;font-weight:700;color:${d.color};min-width:28px;text-align:right">
-        ${d.done}/3
+        ${d.done}/${getVisibleMealsByFast().length}
       </div>
     </div>`).join('');
 }
