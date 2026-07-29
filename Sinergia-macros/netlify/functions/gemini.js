@@ -26,13 +26,12 @@ exports.handler = async (event) => {
     };
   }
 
-  // Opcional: verificación rápida de función actualizada
   if (event.httpMethod === 'GET') {
     return {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'groq-qwen-image-v1',
+        version: 'groq-qwen-image-v2',
         message: 'Función activa usando Groq con qwen/qwen3.6-27b',
         model: 'qwen/qwen3.6-27b'
       }, null, 2)
@@ -90,11 +89,26 @@ exports.handler = async (event) => {
           model: 'qwen/qwen3.6-27b',
           messages: [
             {
+              role: 'system',
+              content: 'Responde siempre en español. No muestres razonamiento interno. No uses etiquetas <think>. Entrega solamente la respuesta final para el usuario. Sé conciso, claro, motivador y profesional.'
+            },
+            {
               role: 'user',
               content: [
                 {
                   type: 'text',
-                  text: prompt
+                  text: `${prompt}
+
+IMPORTANTE:
+- No muestres análisis interno.
+- No uses etiquetas <think>.
+- No expliques tu proceso de pensamiento.
+- Responde solo con el resultado final.
+- Usa exactamente esta estructura:
+1. Alimentos identificados
+2. Estimación de macros
+3. Calidad hormonal
+4. Sugerencia de mejora Sinergia`
                 },
                 {
                   type: 'image_url',
@@ -105,17 +119,22 @@ exports.handler = async (event) => {
               ]
             }
           ],
-          max_tokens: 700,
-          temperature: 0.4
+          max_tokens: 1200,
+          temperature: 0.3
         })
       }
     );
 
     const data = await response.json();
 
-    const text =
+    let text =
       data?.choices?.[0]?.message?.content ||
       '';
+
+    text = text
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/<think>[\s\S]*/gi, '')
+      .trim();
 
     if (!response.ok) {
       return {
@@ -137,7 +156,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        text: text || '',
+        text: text || 'Sin respuesta de la IA',
         groqStatus: response.status,
         groqOk: response.ok,
         model: 'qwen/qwen3.6-27b'
