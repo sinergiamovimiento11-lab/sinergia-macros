@@ -20,96 +20,31 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'debug-models-v3',
+        text: '',
         error: 'Falta GROQ_API_KEY en Netlify'
       }, null, 2)
     };
   }
 
-  // =====================================================
-  // SIEMPRE QUE TENGA ?models=1, LISTA MODELOS
-  // SIN IMPORTAR SI ES GET O POST
-  // =====================================================
-  if (event.queryStringParameters?.models === '1') {
-    try {
-      const modelsResponse = await fetch('https://api.groq.com/openai/v1/models', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const modelsData = await modelsResponse.json();
-      const models = modelsData?.data?.map(model => model.id) || [];
-
-      const possibleVisionModels = models.filter(id => {
-        const lower = id.toLowerCase();
-        return (
-          lower.includes('vision') ||
-          lower.includes('scout') ||
-          lower.includes('maverick') ||
-          lower.includes('llama-4') ||
-          lower.includes('vl') ||
-          lower.includes('multimodal')
-        );
-      });
-
-      return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          version: 'debug-models-v3',
-          mode: 'models',
-          method: event.httpMethod,
-          ok: modelsResponse.ok,
-          status: modelsResponse.status,
-          totalModels: models.length,
-          possibleVisionModels,
-          allModels: models,
-          raw: modelsData
-        }, null, 2)
-      };
-
-    } catch (err) {
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          version: 'debug-models-v3',
-          mode: 'models',
-          error: err.message
-        }, null, 2)
-      };
-    }
-  }
-
-  // =====================================================
-  // SI ES GET SIN ?models=1, DEVUELVE INSTRUCCIONES
-  // =====================================================
+  // Opcional: verificación rápida de función actualizada
   if (event.httpMethod === 'GET') {
     return {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'debug-models-v3',
-        message: 'La función está actualizada. Para listar modelos abre esta misma URL con ?models=1',
-        useThisUrl: '/.netlify/functions/gemini?models=1',
-        method: event.httpMethod,
-        query: event.queryStringParameters || {}
+        version: 'groq-qwen-image-v1',
+        message: 'Función activa usando Groq con qwen/qwen3.6-27b',
+        model: 'qwen/qwen3.6-27b'
       }, null, 2)
     };
   }
 
-  // =====================================================
-  // ANÁLISIS DE IMAGEN
-  // =====================================================
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'debug-models-v3',
+        text: '',
         error: 'Método no permitido',
         method: event.httpMethod
       }, null, 2)
@@ -124,7 +59,6 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({
-          version: 'debug-models-v3',
           text: '',
           error: 'Falta prompt'
         }, null, 2)
@@ -136,7 +70,6 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({
-          version: 'debug-models-v3',
           text: '',
           error: 'Falta imageBase64'
         }, null, 2)
@@ -154,7 +87,7 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama-3.2-11b-vision-preview',
+          model: 'qwen/qwen3.6-27b',
           messages: [
             {
               role: 'user',
@@ -180,19 +113,21 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    const text = data?.choices?.[0]?.message?.content || '';
+    const text =
+      data?.choices?.[0]?.message?.content ||
+      '';
 
     if (!response.ok) {
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
-          version: 'debug-models-v3',
           text: '',
           error: data?.error?.message || 'Error desde Groq',
           errorType: data?.error?.type || null,
           groqStatus: response.status,
           groqOk: response.ok,
+          model: 'qwen/qwen3.6-27b',
           raw: data
         }, null, 2)
       };
@@ -202,10 +137,10 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'debug-models-v3',
         text: text || '',
         groqStatus: response.status,
-        groqOk: response.ok
+        groqOk: response.ok,
+        model: 'qwen/qwen3.6-27b'
       }, null, 2)
     };
 
@@ -214,7 +149,6 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'debug-models-v3',
         text: '',
         error: err.message
       }, null, 2)
