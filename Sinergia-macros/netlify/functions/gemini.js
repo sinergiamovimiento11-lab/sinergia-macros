@@ -73,7 +73,7 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+          model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
           messages: [
             {
               role: 'user',
@@ -91,7 +91,8 @@ exports.handler = async (event) => {
               ]
             }
           ],
-          max_tokens: 500
+          max_tokens: 700,
+          temperature: 0.4
         })
       }
     );
@@ -100,21 +101,30 @@ exports.handler = async (event) => {
 
     const text =
       data?.choices?.[0]?.message?.content ||
-      data?.choices?.[0]?.message?.reasoning ||
       '';
+
+    if (!response.ok) {
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          text: '',
+          error: data?.error?.message || 'Error desde Groq',
+          errorType: data?.error?.type || null,
+          groqStatus: response.status,
+          groqOk: response.ok,
+          raw: data
+        })
+      };
+    }
 
     return {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        text,
+        text: text || '',
         groqStatus: response.status,
-        groqOk: response.ok,
-        mimeTypeReceived: cleanMimeType,
-        imageBase64Length: imageBase64.length,
-        error: data?.error?.message || null,
-        errorType: data?.error?.type || null,
-        raw: data
+        groqOk: response.ok
       })
     };
 
@@ -124,10 +134,8 @@ exports.handler = async (event) => {
       headers: corsHeaders,
       body: JSON.stringify({
         text: '',
-        error: err.message,
-        stack: err.stack
+        error: err.message
       })
     };
   }
 };
-
