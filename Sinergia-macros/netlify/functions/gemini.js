@@ -28,9 +28,10 @@ exports.handler = async (event) => {
     }
 
     // =====================================================
-    // MODO GET: LISTAR MODELOS DISPONIBLES EN GROQ
+    // LISTAR MODELOS DE GROQ
+    // Abre: /.netlify/functions/gemini?models=1
     // =====================================================
-    if (event.httpMethod === 'GET') {
+    if (event.httpMethod === 'GET' || event.queryStringParameters?.models === '1') {
       const modelsResponse = await fetch('https://api.groq.com/openai/v1/models', {
         method: 'GET',
         headers: {
@@ -40,7 +41,6 @@ exports.handler = async (event) => {
       });
 
       const modelsData = await modelsResponse.json();
-
       const models = modelsData?.data?.map(model => model.id) || [];
 
       const possibleVisionModels = models.filter(id => {
@@ -59,6 +59,7 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
+          mode: 'groq-model-list',
           ok: modelsResponse.ok,
           status: modelsResponse.status,
           totalModels: models.length,
@@ -70,7 +71,7 @@ exports.handler = async (event) => {
     }
 
     // =====================================================
-    // MODO POST: ANALIZAR IMAGEN COMO ANTES
+    // ANALIZAR IMAGEN
     // =====================================================
     if (event.httpMethod !== 'POST') {
       return {
@@ -119,6 +120,7 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
+          // Este modelo está retirado, lo dejamos solo hasta encontrar el nuevo.
           model: 'llama-3.2-11b-vision-preview',
           messages: [
             {
@@ -145,9 +147,7 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    const text =
-      data?.choices?.[0]?.message?.content ||
-      '';
+    const text = data?.choices?.[0]?.message?.content || '';
 
     if (!response.ok) {
       return {
