@@ -931,12 +931,19 @@ function goTo(n) {
   document.body.classList.toggle('on-s0', cur === 0);
   updateNav(); updateProgress(); updateDots();
   document.querySelectorAll('.slide')[cur].scrollTop = 0;
-  if (cur === 3)  calcIdealWeight();
-  if (cur === 8)  buildSummary();
-  if (cur === 9)  { calcPlan(); renderResults(); }
-  if (cur === 11) renderTrackers();
-  if (cur === 10) { renderMeals(); renderMealRegisters(); }
-  if (cur === 13) { renderStreak(); renderHistory(); } }
+ if (cur === 3) calcIdealWeight();
+
+if (cur === 7) {
+  const warnSelect = document.getElementById('fast-warning-select-wrap');
+  if (warnSelect) warnSelect.innerHTML = getFastingWarning();
+}
+
+if (cur === 8) buildSummary();
+if (cur === 9) { calcPlan(); renderResults(); }
+if (cur === 10) { renderMeals(); renderMealRegisters(); }
+if (cur === 11) renderTrackers();
+if (cur === 13) { renderStreak(); renderHistory(); }
+}
 
 
 function goNext() {
@@ -1329,8 +1336,24 @@ function initSwipe() {
 
 /* ── TABS COMIDAS ── */
 function switchMealTab(idx) {
-  document.querySelectorAll('.meal-tab').forEach((t,i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.meal-tab-content').forEach((c,i) => c.classList.toggle('active', i === idx));
+  const btn = document.getElementById('tab-btn-' + idx);
+  const content = document.getElementById('tab-content-' + idx);
+
+  if (!btn || !content) return;
+
+  // Si la pestaña está oculta por el protocolo de ayuno, no hacer nada
+  if (btn.style.display === 'none') return;
+
+  document.querySelectorAll('.meal-tab').forEach((t, i) => {
+    const isActive = i === idx;
+    t.classList.toggle('active', isActive);
+  });
+
+  document.querySelectorAll('.meal-tab-content').forEach((c, i) => {
+    const isActive = i === idx;
+    c.classList.toggle('active', isActive);
+    c.style.display = isActive ? 'block' : 'none';
+  });
 }
 
 /* ── TOAST ── */
@@ -1346,13 +1369,35 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function dayRotate(arr) {
-  if (!arr || !arr.length) return arr[0];
-  const epoch = new Date('2026-01-01');
+function getDayIndex() {
+  const epoch = new Date('2026-01-01T12:00:00');
   const today = new Date();
-  const diff = Math.floor((today - epoch) / 86400000);
-  return arr[diff % arr.length];
+  today.setHours(12, 0, 0, 0);
+  return Math.floor((today - epoch) / 86400000);
 }
+
+function hashString(str = '') {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h) + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function dayRotate(arr, seed = 0, salt = '') {
+  if (!arr || !arr.length) return null;
+
+  const diff = getDayIndex();
+  const userSeed = hashString(normalizeName(S.name || 'sinergia'));
+  const saltSeed = hashString(String(salt));
+
+  const idx = Math.abs((diff * 7) + seed + userSeed + saltSeed) % arr.length;
+
+  return arr[idx];
+}
+
+
 
 function fmtDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
@@ -1853,14 +1898,24 @@ function renderFatSwaps(mealKey, fats) {
 function renderOneMeal(mealKey) {
   const plan = MEAL_PLANS[mealKey];
   if (!plan) return '';
-  const main   = dayRotate(plan.mains);
-  const fat    = dayRotate(plan.fats);
-  const comps  = dayRotate(plan.companionSets);
-  const drink  = dayRotate(plan.drinks);
-  const fruit  = dayRotate(plan.fruits);
-  const carb   = mealKey === 'almuerzo' ? dayRotate(plan.carbSets) : null;
+    const mealSeedMap = {
+    desayuno: 1,
+    almuerzo: 5,
+    cena: 9
+  };
+
+  const baseSeed = mealSeedMap[mealKey] || 1;
+
+   const main   = dayRotate(plan.mains, baseSeed + 0, `${mealKey}-main`);
+  const fat    = dayRotate(plan.fats, baseSeed + 2, `${mealKey}-fat`);
+  const comps  = dayRotate(plan.companionSets, baseSeed + 4, `${mealKey}-comps`);
+  const drink  = dayRotate(plan.drinks, baseSeed + 6, `${mealKey}-drink`);
+  const fruit  = dayRotate(plan.fruits, baseSeed + 8, `${mealKey}-fruit`);
+  const carb   = mealKey === 'almuerzo' ? dayRotate(plan.carbSets, baseSeed + 10, `${mealKey}-carb`) : null;
+
+
+
  const macros = getMacrosPerMeal();
-const protPerMeal = macros.prot;
 const carbSwapPanel = mealKey === 'almuerzo' ? renderCarbSwaps(mealKey, plan.carbSets) : '';
 const fatSwapPanel  = renderFatSwaps(mealKey, plan.fats);
 
@@ -2247,18 +2302,24 @@ if (pct === 100) {
 
 /* ── RENDER DAILY MEALS v3.6 — Panel inline ── */
 
+let _ratings = {};
+
 function toggleRegPanel(mealId) {
-  /* Cierra todos los otros paneles primero */
-  ['desayuno','almuerzo','cena'].forEach(m => {
+  const visibleMeals = getVisibleMealsByFast();
+
+  // Si esa comida no pertenece al protocolo actual, no hacer nada
+  if (!visibleMeals.includes(mealId)) return;
+
+  // Cierra los otros paneles visibles
+  visibleMeals.forEach(m => {
     if (m !== mealId) {
       document.getElementById('reg-panel-' + m)?.classList.remove('open');
     }
   });
+
   const panel = document.getElementById('reg-panel-' + mealId);
   if (panel) panel.classList.toggle('open');
 }
-
-let _ratings = {};
 
 function selectRating(mealId, val, btn) {
   _ratings[mealId] = val;
@@ -2292,8 +2353,21 @@ function renderMealRegisters() {
 
     if (!statusEl) return;
 
-    const mainFood = dayRotate(MEAL_PLANS[mealKey].mains);
-    if (refEl) refEl.textContent = mainFood ? `${mainFood.ico} ${mainFood.name}` : '';
+    const mealSeedMap = {
+      desayuno: 1,
+      almuerzo: 5,
+      cena: 9
+    };
+
+    const baseSeed = mealSeedMap[mealKey] || 1;
+    const mainFood = dayRotate(MEAL_PLANS[mealKey].mains, baseSeed + 0, `${mealKey}-main`);
+
+
+    if (refEl) {
+      refEl.textContent = mainFood ? `${mainFood.ico} ${mainFood.name}` : '';
+    }
+
+
 
     if (d?.done) {
       statusEl.innerHTML = `
@@ -2328,42 +2402,70 @@ function confirmMeal(mealId) {
   const notes  = document.getElementById('notes-' + mealId)?.value?.trim() || '';
   const rating = _ratings[mealId] || '😊 Bien';
 
-  daily[mealId] = { done:true, rating, notes,
-    time: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) };
+  daily[mealId] = {
+    done: true,
+    rating,
+    notes,
+    time: new Date().toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  };
+
   localStorage.setItem('sinergia_daily_' + key, JSON.stringify(daily));
 
- /* ── Suma automática al tracker ── */
-const tKey = 'sinergia_trackers_' + key;
-const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
-const macros = getMacrosPerMeal();
-const protPorComida  = macros.prot;
-const carbPorComida  = macros.carb;
-const aguaPorComida  = Math.round((S.water / macros.count) * 100) / 100;
-tr.prot  = Math.round(((tr.prot  || 0) + protPorComida)  * 100) / 100;
-tr.carb  = Math.round(((tr.carb  || 0) + carbPorComida)  * 100) / 100;
-tr.water = Math.round(((tr.water || 0) + aguaPorComida)  * 100) / 100;
-localStorage.setItem(tKey, JSON.stringify(tr));
+  /* ── Suma automática al tracker ── */
+  const tKey = 'sinergia_trackers_' + key;
+  const tr   = JSON.parse(localStorage.getItem(tKey) || '{}');
+  const macros = getMacrosPerMeal();
 
+  const protPorComida = macros.prot;
+  const carbPorComida = macros.carb;
+  const aguaPorComida = Math.round((S.water / macros.count) * 100) / 100;
 
-  showToast(`✅ ${mealId.charAt(0).toUpperCase()+mealId.slice(1)} registrado · ${rating}`);
+  tr.prot  = Math.round(((tr.prot  || 0) + protPorComida) * 100) / 100;
+  tr.carb  = Math.round(((tr.carb  || 0) + carbPorComida) * 100) / 100;
+  tr.water = Math.round(((tr.water || 0) + aguaPorComida) * 100) / 100;
+
+  localStorage.setItem(tKey, JSON.stringify(tr));
+
+  showToast(`✅ ${mealId.charAt(0).toUpperCase() + mealId.slice(1)} registrado · ${rating}`);
 
   const visibleMeals = getVisibleMealsByFast();
-const done = visibleMeals.filter(m => daily[m]?.done).length;
+  const done = visibleMeals.filter(m => daily[m]?.done).length;
 
-if (done === visibleMeals.length) {
+  if (done === visibleMeals.length) {
     saveStreakDay(key);
-    setTimeout(() => showToast('🔥 ¡Día completo! Racha actualizada 🏆', 3000), 1000);
+    setTimeout(() => {
+      showToast('🔥 ¡Día completo! Racha actualizada 🏆', 3000);
+    }, 1000);
   }
 
+  renderMealRegisters();
+
+  if (cur === 11) {
+    renderTrackers();
+  }
+
+  /* ── Pasar automáticamente a la siguiente comida visible ── */
   const order = getVisibleMealsByFast();
-const idx   = order.indexOf(mealId);
-const next  = order[idx + 1];
-  if (next && !daily[next]?.done) {
-    setTimeout(() => toggleRegPanel(next), 600);
-  }
+  const idx   = order.indexOf(mealId);
+  const next  = order[idx + 1];
 
-  renderMealRegisters(); /* ← ahora sí existe */
+  if (next && !daily[next]?.done) {
+    const allMeals = ['desayuno', 'almuerzo', 'cena'];
+    const nextIdx = allMeals.indexOf(next);
+
+    setTimeout(() => {
+      if (nextIdx >= 0) switchMealTab(nextIdx);
+
+      setTimeout(() => {
+        toggleRegPanel(next);
+      }, 250);
+    }, 600);
+  }
 }
+
 
 /* ── RACHA ── */
 function saveStreakDay(dateKey) {
