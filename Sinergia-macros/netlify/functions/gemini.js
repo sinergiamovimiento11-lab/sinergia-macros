@@ -2,7 +2,7 @@ exports.handler = async (event) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
 
   if (event.httpMethod === 'OPTIONS') {
@@ -13,20 +13,7 @@ exports.handler = async (event) => {
     };
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: corsHeaders,
-      body: JSON.stringify({
-        text: '',
-        error: 'Método no permitido',
-        method: event.httpMethod
-      })
-    };
-  }
-
   try {
-    const { imageBase64, mimeType, prompt } = JSON.parse(event.body || '{}');
     const API_KEY = process.env.GROQ_API_KEY;
 
     if (!API_KEY) {
@@ -36,9 +23,68 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           text: '',
           error: 'Falta GROQ_API_KEY en Netlify'
-        })
+        }, null, 2)
       };
     }
+
+    // =====================================================
+    // MODO GET: LISTAR MODELOS DISPONIBLES EN GROQ
+    // =====================================================
+    if (event.httpMethod === 'GET') {
+      const modelsResponse = await fetch('https://api.groq.com/openai/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const modelsData = await modelsResponse.json();
+
+      const models = modelsData?.data?.map(model => model.id) || [];
+
+      const possibleVisionModels = models.filter(id => {
+        const lower = id.toLowerCase();
+        return (
+          lower.includes('vision') ||
+          lower.includes('scout') ||
+          lower.includes('maverick') ||
+          lower.includes('llama-4') ||
+          lower.includes('vl') ||
+          lower.includes('multimodal')
+        );
+      });
+
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          ok: modelsResponse.ok,
+          status: modelsResponse.status,
+          totalModels: models.length,
+          possibleVisionModels,
+          allModels: models,
+          raw: modelsData
+        }, null, 2)
+      };
+    }
+
+    // =====================================================
+    // MODO POST: ANALIZAR IMAGEN COMO ANTES
+    // =====================================================
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          text: '',
+          error: 'Método no permitido',
+          method: event.httpMethod
+        }, null, 2)
+      };
+    }
+
+    const { imageBase64, mimeType, prompt } = JSON.parse(event.body || '{}');
 
     if (!prompt) {
       return {
@@ -47,7 +93,7 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           text: '',
           error: 'Falta prompt'
-        })
+        }, null, 2)
       };
     }
 
@@ -58,7 +104,7 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           text: '',
           error: 'Falta imageBase64'
-        })
+        }, null, 2)
       };
     }
 
@@ -73,7 +119,7 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          model: 'llama-3.2-90b-vision-preview',
+          model: 'llama-3.2-11b-vision-preview',
           messages: [
             {
               role: 'user',
@@ -114,7 +160,7 @@ exports.handler = async (event) => {
           groqStatus: response.status,
           groqOk: response.ok,
           raw: data
-        })
+        }, null, 2)
       };
     }
 
@@ -125,7 +171,7 @@ exports.handler = async (event) => {
         text: text || '',
         groqStatus: response.status,
         groqOk: response.ok
-      })
+      }, null, 2)
     };
 
   } catch (err) {
@@ -134,8 +180,9 @@ exports.handler = async (event) => {
       headers: corsHeaders,
       body: JSON.stringify({
         text: '',
-        error: err.message
-      })
+        error: err.message,
+        stack: err.stack
+      }, null, 2)
     };
   }
 };
