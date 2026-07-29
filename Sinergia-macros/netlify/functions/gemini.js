@@ -13,25 +13,25 @@ exports.handler = async (event) => {
     };
   }
 
-  try {
-    const API_KEY = process.env.GROQ_API_KEY;
+  const API_KEY = process.env.GROQ_API_KEY;
 
-    if (!API_KEY) {
-      return {
-        statusCode: 500,
-        headers: corsHeaders,
-        body: JSON.stringify({
-          text: '',
-          error: 'Falta GROQ_API_KEY en Netlify'
-        }, null, 2)
-      };
-    }
+  if (!API_KEY) {
+    return {
+      statusCode: 500,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        version: 'debug-models-v3',
+        error: 'Falta GROQ_API_KEY en Netlify'
+      }, null, 2)
+    };
+  }
 
-    // =====================================================
-    // LISTAR MODELOS DE GROQ
-    // Abre: /.netlify/functions/gemini?models=1
-    // =====================================================
-    if (event.httpMethod === 'GET' || event.queryStringParameters?.models === '1') {
+  // =====================================================
+  // SIEMPRE QUE TENGA ?models=1, LISTA MODELOS
+  // SIN IMPORTAR SI ES GET O POST
+  // =====================================================
+  if (event.queryStringParameters?.models === '1') {
+    try {
       const modelsResponse = await fetch('https://api.groq.com/openai/v1/models', {
         method: 'GET',
         headers: {
@@ -59,7 +59,9 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
-          mode: 'groq-model-list',
+          version: 'debug-models-v3',
+          mode: 'models',
+          method: event.httpMethod,
           ok: modelsResponse.ok,
           status: modelsResponse.status,
           totalModels: models.length,
@@ -68,23 +70,53 @@ exports.handler = async (event) => {
           raw: modelsData
         }, null, 2)
       };
-    }
 
-    // =====================================================
-    // ANALIZAR IMAGEN
-    // =====================================================
-    if (event.httpMethod !== 'POST') {
+    } catch (err) {
       return {
-        statusCode: 405,
+        statusCode: 500,
         headers: corsHeaders,
         body: JSON.stringify({
-          text: '',
-          error: 'Método no permitido',
-          method: event.httpMethod
+          version: 'debug-models-v3',
+          mode: 'models',
+          error: err.message
         }, null, 2)
       };
     }
+  }
 
+  // =====================================================
+  // SI ES GET SIN ?models=1, DEVUELVE INSTRUCCIONES
+  // =====================================================
+  if (event.httpMethod === 'GET') {
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        version: 'debug-models-v3',
+        message: 'La función está actualizada. Para listar modelos abre esta misma URL con ?models=1',
+        useThisUrl: '/.netlify/functions/gemini?models=1',
+        method: event.httpMethod,
+        query: event.queryStringParameters || {}
+      }, null, 2)
+    };
+  }
+
+  // =====================================================
+  // ANÁLISIS DE IMAGEN
+  // =====================================================
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: corsHeaders,
+      body: JSON.stringify({
+        version: 'debug-models-v3',
+        error: 'Método no permitido',
+        method: event.httpMethod
+      }, null, 2)
+    };
+  }
+
+  try {
     const { imageBase64, mimeType, prompt } = JSON.parse(event.body || '{}');
 
     if (!prompt) {
@@ -92,6 +124,7 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({
+          version: 'debug-models-v3',
           text: '',
           error: 'Falta prompt'
         }, null, 2)
@@ -103,6 +136,7 @@ exports.handler = async (event) => {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({
+          version: 'debug-models-v3',
           text: '',
           error: 'Falta imageBase64'
         }, null, 2)
@@ -120,7 +154,6 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          // Este modelo está retirado, lo dejamos solo hasta encontrar el nuevo.
           model: 'llama-3.2-11b-vision-preview',
           messages: [
             {
@@ -154,6 +187,7 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
+          version: 'debug-models-v3',
           text: '',
           error: data?.error?.message || 'Error desde Groq',
           errorType: data?.error?.type || null,
@@ -168,6 +202,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
+        version: 'debug-models-v3',
         text: text || '',
         groqStatus: response.status,
         groqOk: response.ok
@@ -179,9 +214,9 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers: corsHeaders,
       body: JSON.stringify({
+        version: 'debug-models-v3',
         text: '',
-        error: err.message,
-        stack: err.stack
+        error: err.message
       }, null, 2)
     };
   }
