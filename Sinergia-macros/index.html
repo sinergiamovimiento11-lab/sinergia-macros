@@ -181,7 +181,6 @@ body.on-s0 #bnav{display:none!important}
 .photo-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .photo-drop-zone .drop-icon{font-size:2rem}
 .photo-drop-zone p{color:rgba(255,255,255,.5);font-size:.85rem;margin-top:6px}
-.ia-result-box{background:rgba(255,255,255,.05);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:.85rem;color:rgba(255,255,255,.85);line-height:1.5;white-space:pre-wrap}
 .ia-response{background:rgba(26,158,143,.08);border:1px solid rgba(26,158,143,.25);border-radius:12px;padding:12px 14px;margin-top:8px}
 .ia-btn{display:block;width:100%;padding:12px;background:rgba(46,204,113,.12);border:1px dashed rgba(46,204,113,.4);border-radius:12px;color:#2ecc71;font-size:.85rem;font-weight:700;cursor:pointer;text-align:center;margin-bottom:8px}
 /* ── TRACKERS ── */
@@ -230,6 +229,58 @@ body.on-s0 #bnav{display:none!important}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @media(min-width:600px){.si{padding:0 8px}.og{grid-template-columns:1fr 1fr 1fr}}
+/* Formato bonito para la respuesta IA dentro de cada comida */
+.ia-result-box {
+  background: rgba(26,158,143,.08);
+  border: 1px solid rgba(26,158,143,.25);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: .85rem;
+  color: rgba(255,255,255,.88);
+  line-height: 1.55;
+  white-space: normal;
+  }
+
+.ia-result-box h3 {
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: #2ecc71;
+  font-size: .95rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.ia-result-box h3:first-child {
+  margin-top: 0;
+}
+
+.ia-result-box strong {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.ia-result-box .ai-bullet {
+  margin: 6px 0 6px 8px;
+  line-height: 1.5;
+  color: rgba(255,255,255,.86);
+}
+
+.ia-result-box .ai-error {
+  color: #ffb4b4;
+  background: rgba(224,82,82,.12);
+  border: 1px solid rgba(224,82,82,.3);
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.ia-result-box .ai-paragraph {
+  margin: 6px 0;
+  line-height: 1.55;
+  color: rgba(255,255,255,.86);
+
+}
+
 </style>
 </head>
 	
@@ -2129,6 +2180,56 @@ function previewMealPhoto(mealKey, input) {
   reader.readAsDataURL(file);
 }
 
+function escapeHTML(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+function formatAIResponse(text) {
+  if (!text) return '<p>Sin respuesta de la IA</p>';
+
+  const safeText = escapeHTML(text);
+
+  const lines = safeText.split('\n');
+  let html = '';
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      return;
+    }
+
+    if (trimmed.startsWith('### ')) {
+      html += '<h3>' + trimmed.replace(/^###\s*/, '') + '</h3>';
+      return;
+    }
+
+    if (trimmed.startsWith('## ')) {
+      html += '<h3>' + trimmed.replace(/^##\s*/, '') + '</h3>';
+      return;
+    }
+
+    if (trimmed.startsWith('- ')) {
+      const bulletText = trimmed
+        .replace(/^-\s*/, '')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      html += '<div class="ai-bullet">• ' + bulletText + '</div>';
+      return;
+    }
+
+    const paragraphText = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html += '<p class="ai-paragraph">' + paragraphText + '</p>';
+  });
+
+  return html;
+}
+
+
 async function analyzeMealPhoto(mealKey) {
   const img  = document.getElementById('img-' + mealKey);
   const load = document.getElementById('ia-load-' + mealKey);
@@ -2140,10 +2241,13 @@ async function analyzeMealPhoto(mealKey) {
     return;
   }
 
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
 
   if (load) load.style.display = 'block';
-  if (res)  res.style.display  = 'none';
+  if (res) {
+    res.style.display = 'none';
+    res.innerHTML = '';
+  }
 
   const plan = MEAL_PLANS[mealKey];
   const mealName = plan?.name || mealKey;
@@ -2169,7 +2273,12 @@ async function analyzeMealPhoto(mealKey) {
 
     if (res) {
       res.style.display = 'block';
-      res.textContent = JSON.stringify(data, null, 2);
+
+      if (data.error) {
+        res.innerHTML = '<div class="ai-error"><strong>Error:</strong> ' + escapeHTML(data.error) + '</div>';
+      } else {
+        res.innerHTML = formatAIResponse(data.text || 'Sin respuesta de la IA');
+      }
     }
 
   } catch(e) {
@@ -2177,12 +2286,13 @@ async function analyzeMealPhoto(mealKey) {
 
     if (res) {
       res.style.display = 'block';
-      res.textContent = '❌ Error al conectar con la IA. Verifica tu conexión.';
+      res.innerHTML = '<div class="ai-error">❌ Error al conectar con la IA. Verifica tu conexión.</div>';
     }
   }
 
-  btn.disabled = false;
+  if (btn) btn.disabled = false;
 }
+
 
 /* ── TRACKERS ── */
 function renderTrackers() {
