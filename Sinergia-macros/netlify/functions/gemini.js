@@ -73,7 +73,7 @@ exports.handler = async (event) => {
           'Authorization': `Bearer ${API_KEY}`
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+          model: 'llama-3.2-11b-vision-preview',
           messages: [
             {
               role: 'user',
