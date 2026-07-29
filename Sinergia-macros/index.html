@@ -1184,12 +1184,15 @@ function setFast(id) {
     el.classList.toggle('sel', el.dataset.fast === id);
   });
 
+  // Advertencia completa SOLO en el slide de selección de ayuno
   const warnSelect = document.getElementById('fast-warning-select-wrap');
   if (warnSelect) warnSelect.innerHTML = getFastingWarning();
 
+  // En el slide de comidas no mostramos la advertencia larga
   const warnMeals = document.getElementById('fast-warning-wrap');
-  if (warnMeals) warnMeals.innerHTML = getFastingWarning();
+  if (warnMeals) warnMeals.innerHTML = '';
 }
+
 
 
 /* ── BUILDERS ── */
@@ -1840,7 +1843,7 @@ function renderMeals() {
     `;
   }
 const warn = document.getElementById('fast-warning-wrap');
-if (warn) warn.innerHTML = getFastingWarning();
+if (warn) warn.innerHTML = '';
 }
 
 
