@@ -2134,30 +2134,53 @@ async function analyzeMealPhoto(mealKey) {
   const load = document.getElementById('ia-load-' + mealKey);
   const res  = document.getElementById('ia-result-' + mealKey);
   const btn  = document.getElementById('analyze-btn-' + mealKey);
-  if (!img || !img._base64) { showToast('Primero sube una foto del plato'); return; }
+
+  if (!img || !img._base64) {
+    showToast('Primero sube una foto del plato');
+    return;
+  }
+
   btn.disabled = true;
+
   if (load) load.style.display = 'block';
   if (res)  res.style.display  = 'none';
+
   const plan = MEAL_PLANS[mealKey];
   const mealName = plan?.name || mealKey;
+
   const prompt = `Eres el nutricionista IA de Sinergia En Movimiento. Analiza esta foto de ${mealName} con enfoque hormonal Jaramillo/Fung. Responde en español con: 1) Alimentos identificados 2) Estimación de macros (proteína/grasa/carbos/kcal) 3) Calidad hormonal del plato (insulina, cortisol) 4) Sugerencia de mejora Sinergia. Sé conciso y motivador.`;
+
   try {
     const response = await fetch('/.netlify/functions/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, imageBase64: img._base64, mimeType: img._mime })
+      body: JSON.stringify({
+        prompt,
+        imageBase64: img._base64,
+        mimeType: img._mime
+      })
     });
+
     const data = await response.json();
+
+    console.log('RESPUESTA GEMINI:', data);
+
     if (load) load.style.display = 'none';
+
     if (res) {
       res.style.display = 'block';
-      res.textContent = data.text || data.result || data.error || 'Sin respuesta de la IA';
-
+      res.textContent = JSON.stringify(data, null, 2);
     }
+
   } catch(e) {
     if (load) load.style.display = 'none';
-    if (res) { res.style.display = 'block'; res.textContent = '❌ Error al conectar con la IA. Verifica tu conexión.'; }
+
+    if (res) {
+      res.style.display = 'block';
+      res.textContent = '❌ Error al conectar con la IA. Verifica tu conexión.';
+    }
   }
+
   btn.disabled = false;
 }
 
