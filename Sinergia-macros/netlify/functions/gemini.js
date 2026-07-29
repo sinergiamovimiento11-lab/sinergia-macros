@@ -31,7 +31,7 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        version: 'groq-qwen-image-v4-debug',
+        version: 'groq-qwen-image-v5',
         message: 'Función activa usando Groq con qwen/qwen3.6-27b',
         model: 'qwen/qwen3.6-27b'
       }, null, 2)
@@ -79,31 +79,30 @@ exports.handler = async (event) => {
 
     const enhancedPrompt = `${prompt}
 
-Responde en español, sin razonamiento interno y sin etiquetas <think>.
+Responde SOLO con el resultado final, en español, sin <think> y sin razonamiento interno.
 
-Usa este formato Markdown:
+Formato obligatorio y breve:
 
 ### 🍽️ Alimentos identificados
-- Lista breve de alimentos visibles.
+- Máximo 4 viñetas.
 
 ### 📊 Estimación de macros
-- **Proteína:** gramos aproximados.
-- **Grasa:** gramos aproximados.
-- **Carbohidratos:** gramos aproximados.
-- **Calorías:** kcal aproximadas.
+- **Proteína:** ___ g
+- **Grasa:** ___ g
+- **Carbohidratos:** ___ g
+- **Calorías:** ___ kcal
 
 ### 🧬 Calidad hormonal
-- **Insulina:** impacto bajo, medio o alto.
-- **Cortisol:** efecto sobre energía/hambre.
-- **Saciedad/Energía:** explicación breve.
+- **Insulina:** 1 frase.
+- **Cortisol:** 1 frase.
+- **Saciedad/Energía:** 1 frase.
 
 ### 🌿 Sugerencia de mejora Sinergia
-- Da 1 o 2 recomendaciones prácticas.
-- Si mencionas vinagre de manzana, escribe esta advertencia completa:
-  "El vinagre de manzana solo se recomienda si no tienes gastritis, reflujo, irritación gástrica, úlcera, molestias digestivas activas y si no tomas inhibidores de la bomba de protones. Si tienes dudas, consulta con tu profesional de salud."
+- 1 recomendación principal.
+- Si mencionas vinagre de manzana, añade: "Solo si no tienes gastritis, reflujo, irritación gástrica, úlcera, molestias digestivas activas y si no tomas inhibidores de la bomba de protones. Si tienes dudas, consulta con tu profesional de salud."
 
 ### ✅ Conclusión breve
-- Una frase positiva y motivadora.`;
+- 1 frase motivadora.`;
 
     const response = await fetch(
       'https://api.groq.com/openai/v1/chat/completions',
@@ -118,7 +117,7 @@ Usa este formato Markdown:
           messages: [
             {
               role: 'system',
-              content: 'Eres el nutricionista IA de Sinergia En Movimiento. Responde en español, claro, profesional y motivador. No muestres razonamiento interno. No uses etiquetas <think>. No diagnostiques enfermedades.'
+              content: 'Eres el nutricionista IA de Sinergia En Movimiento. Responde en español, claro, profesional y motivador. No muestres razonamiento interno. No uses etiquetas <think>. No diagnostiques enfermedades. Debes completar siempre las 5 secciones solicitadas, aunque sea de forma breve.'
             },
             {
               role: 'user',
@@ -136,7 +135,7 @@ Usa este formato Markdown:
               ]
             }
           ],
-          max_tokens: 1500,
+          max_tokens: 2500,
           temperature: 0.2
         })
       }
@@ -144,7 +143,6 @@ Usa este formato Markdown:
 
     const data = await response.json();
 
-    // Intentamos leer el texto desde varias rutas posibles
     let text =
       data?.choices?.[0]?.message?.content ||
       data?.choices?.[0]?.text ||
@@ -152,14 +150,12 @@ Usa este formato Markdown:
       data?.content ||
       '';
 
-    // Si content viene como arreglo, lo convertimos a texto
     if (Array.isArray(text)) {
       text = text
         .map(item => item?.text || item?.content || '')
         .join('\n');
     }
 
-    // Limpieza de razonamiento interno
     text = String(text)
       .replace(/<think>[\s\S]*?<\/think>/gi, '')
       .replace(/<think>[\s\S]*/gi, '')
@@ -182,14 +178,13 @@ Usa este formato Markdown:
       };
     }
 
-    // Si Groq responde OK pero el texto viene vacío, devolvemos raw para depurar
     if (!text) {
       return {
         statusCode: 200,
         headers: corsHeaders,
         body: JSON.stringify({
           text: 'Sin respuesta de la IA',
-          warning: 'Groq respondió OK, pero no se encontró texto en choices[0].message.content',
+          warning: 'Groq respondió OK, pero no se encontró texto en la respuesta.',
           groqStatus: response.status,
           groqOk: response.ok,
           model: 'qwen/qwen3.6-27b',
